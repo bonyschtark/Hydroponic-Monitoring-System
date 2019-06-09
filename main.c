@@ -80,7 +80,7 @@
 #define GET_REQUEST_URI        "/get"
 
 
-#define HOST_NAME              "httpbin.org"
+//#define HOST_NAME              "httpbin.org"
 #define HOST_PORT              80
 
 #define PROXY_IP               0xBA5FB660
@@ -140,7 +140,7 @@ _i32 g_SockID = 0;
  */
 #define STATUS_BIT_PING_DONE  31
 
-//#define HOST_NAME       "www.ti.com"
+#define HOST_NAME       "www.ti.com"
 
 /*
  * Values for below macros shall be modified for setting the 'Ping' properties
