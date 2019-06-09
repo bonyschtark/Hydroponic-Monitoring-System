@@ -52,43 +52,43 @@
 
 
 
-//#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-///* HTTP Client lib include */
+/* HTTP Client lib include */
 //#include <http/client/httpcli.h>
-//
-///* JSON Parser include */
-//#include "jsmn.h"
-//
-//
-//#define SL_STOP_TIMEOUT        0xFF
-//
-///*
-// * HTTP request parameters. These may change as depending upon the server
-// */
-//#define POST_REQUEST_URI       "/post"
-//#define POST_DATA              "{\n\"name\":\"xyz\",\n\"address\":\n{\n\"plot#\":12,\n\"street\":\"abc\",\n\"city\":\"ijk\"\n},\n\"age\":30\n}"
-//
-//#define DELETE_REQUEST_URI     "/delete"
-//
-//#define PUT_REQUEST_URI        "/put"
-//#define PUT_DATA               "PUT request."
-//
-//#define GET_REQUEST_URI        "/get"
-//
-//
-//#define HOST_NAME              "httpbin.org"
-//#define HOST_PORT              80
-//
-//#define PROXY_IP               0xBA5FB660
-//#define PROXY_PORT             <proxy_port>
-//
-//#define READ_SIZE       1450
+
+/* JSON Parser include */
+#include "jsmn.h"
+
+
+#define SL_STOP_TIMEOUT        0xFF
+
+/*
+ * HTTP request parameters. These may change as depending upon the server
+*/
+#define POST_REQUEST_URI       "/post"
+#define POST_DATA              "{\n\"name\":\"xyz\",\n\"address\":\n{\n\"plot#\":12,\n\"street\":\"abc\",\n\"city\":\"ijk\"\n},\n\"age\":30\n}"
+
+#define DELETE_REQUEST_URI     "/delete"
+
+#define PUT_REQUEST_URI        "/put"
+#define PUT_DATA               "PUT request."
+
+#define GET_REQUEST_URI        "/get"
+
+
+#define HOST_NAME              "httpbin.org"
+#define HOST_PORT              80
+
+#define PROXY_IP               0xBA5FB660
+#define PROXY_PORT             <proxy_port>
+
+#define READ_SIZE       1450
 #define MAX_BUFF_SIZE   1460
-//#define SPACE           32
+#define SPACE           32
 //
 
 
@@ -140,7 +140,7 @@ _i32 g_SockID = 0;
  */
 #define STATUS_BIT_PING_DONE  31
 
-#define HOST_NAME       "www.ti.com"
+//#define HOST_NAME       "www.ti.com"
 
 /*
  * Values for below macros shall be modified for setting the 'Ping' properties
