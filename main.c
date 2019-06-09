@@ -87,7 +87,7 @@
 //#define PROXY_PORT             <proxy_port>
 //
 //#define READ_SIZE       1450
-//#define MAX_BUFF_SIZE   1460
+#define MAX_BUFF_SIZE   1460
 //#define SPACE           32
 //
 
@@ -104,7 +104,12 @@ typedef enum{
     FILE_WRITE_ERROR = FORMAT_NOT_SUPPORTED - 1,
     INVALID_FILE = FILE_WRITE_ERROR - 1,
 
-   STATUS_CODE_MAX = -0xBB8
+
+        LAN_CONNECTION_FAILED = -0x7D0,        /* Choosing this number to avoid overlap with host-driver's error codes */
+        INTERNET_CONNECTION_FAILED = LAN_CONNECTION_FAILED - 1,
+
+        STATUS_CODE_MAX = -0xBB8
+
 }e_AppStatusCodes;
 
 /*
