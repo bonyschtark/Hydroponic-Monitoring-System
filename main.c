@@ -66,25 +66,49 @@
 
 #define SL_STOP_TIMEOUT        0xFF
 
+#define SERVER  "embedded-systems-server8.appspot.com"
+//#define REQUEST "GET /query?city=Austin%20Texas&id=Jonathan%20Valvano&greet=Hello%20from%20Austin,%20Jon%20and%20Ramesh&edxcode=8086  HTTP/1.1\r\nUser-Agent: Keil\r\nHost: embedded-systems-server.appspot.com\r\n\r\n"
+//#define SERVER "localhost/greengarden/green.php"
+//#define REQUEST "GET /greengarden/green.php?id=100&val=test1 HTTP/1.0\r\n\r\n"
+#define REQUEST "POST /greengarden/garden.php HTTP/1.1\r\nHost: 192.168.1.15\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 20\r\n\r\nid=101&val=dalmation\r\n\r\n"
+//Content-Type: application/x-www-form-urlencoded
+
+static int32_t GetHostIP(void);
+static int32_t Lab16(void);
+static int CreateConnection(void);
+
+
+#define BAUD_RATE           115200
+#define MAX_RECV_BUFF_SIZE  1024
+#define MAX_SEND_BUFF_SIZE  512
+#define MAX_HOSTNAME_SIZE   40
+#define MAX_PASSKEY_SIZE    32
+#define MAX_SSID_SIZE       32
+
+
+// these three strings will be filled by getWeather
+#define MAXLEN 100
+char City[MAXLEN];
+char Temperature[MAXLEN];
+char Weather[MAXLEN];
+char Id[MAXLEN];
+char Score[MAXLEN];
+char Edxpost[MAXLEN];
+
 /*
- * HTTP request parameters. These may change as depending upon the server
-*/
-#define POST_REQUEST_URI       "/post"
-#define POST_DATA              "{\n\"name\":\"xyz\",\n\"address\":\n{\n\"plot#\":12,\n\"street\":\"abc\",\n\"city\":\"ijk\"\n},\n\"age\":30\n}"
-
-#define DELETE_REQUEST_URI     "/delete"
-
-#define PUT_REQUEST_URI        "/put"
-#define PUT_DATA               "PUT request."
-
-#define GET_REQUEST_URI        "/get"
-
+ * GLOBAL VARIABLES -- Start
+ */
+struct{
+  char Recvbuff[MAX_RECV_BUFF_SIZE];
+  char SendBuff[MAX_SEND_BUFF_SIZE];
+  char HostName[MAX_HOSTNAME_SIZE];
+  unsigned long DestinationIP;
+  int SockID;
+}appData;
 
 //#define HOST_NAME              "httpbin.org"
 #define HOST_PORT              80
 
-#define PROXY_IP               0xBA5FB660
-#define PROXY_PORT             <proxy_port>
 
 #define READ_SIZE       1450
 #define MAX_BUFF_SIZE   1460
@@ -176,17 +200,7 @@ static _i32 initializeAppVariables();
 static void displayBanner();
 
 
-/*
-static _i32 ConnectToHTTPServer(HTTPCli_Handle httpClient);
-static _i32 HTTPPostMethod(HTTPCli_Handle httpClient);
-static _i32 HTTPDeleteMethod(HTTPCli_Handle httpClient);
-static _i32 HTTPPutMethod(HTTPCli_Handle httpClient);
-static _i32 HTTPGetMethod(HTTPCli_Handle httpClient);
-static _i32 readResponse(HTTPCli_Handle httpClient);
-static void FlushHTTPResponse(HTTPCli_Handle httpClient);
-static _i32 ParseJSONData(_i8 *ptr);
 
-*/
 
 /*
  * STATIC FUNCTION DEFINITIONS -- End
@@ -475,17 +489,30 @@ int main(int argc, char** argv)
     }
 
     CLI_Write((_u8 *)" Device successfully connected to the internet \n\r");
-/*
-    CLI_Write("\n\r");
-       CLI_Write(" HTTP Post Test Begin:\n\r");
-       retVal = HTTPPostMethod(&httpClient);
-       if(retVal < 0)
-       {
-           CLI_Write(" HTTP Post Test failed.\n\r");
-       }
-       CLI_Write(" HTTP Post Test Completed Successfully\n\r");
 
-*/
+
+
+    /* Get weather report */
+
+     // Nokia5110_SetCursor(0,2);
+     //   retVal = getWeather();
+        retVal = Lab16();
+        if(retVal == 0){  // valid
+         // LED_GreenOn();
+         // UARTprintf("\r\n\r\n");
+         // UARToutString(appData.Recvbuff); UARTprintf("\r\n");
+    //      LCD_OutString(City); LCD_OutString("\n");
+    //      LCD_OutString(Temperature); LCD_OutString(" C\n");
+    //      LCD_OutString(Weather);
+         // LCD_OutString(Id); LCD_OutString("\n");
+         // LCD_OutString(Score); LCD_OutString("\n");
+          //LCD_OutString(Edxpost);
+
+            CLI_Write((_u8 *)" Device successfully got the weather \n\r");
+
+        }
+      //  while(Board_Input()==0){}; // wait for touch
+      //  LED_GreenOff();
 
 
     return 0;
@@ -776,21 +803,149 @@ static void displayBanner()
 
 
 
+static int32_t Lab16(void){
+    uint32_t i;
+
+    char *pt = NULL;
+
+  memcpy(appData.HostName,SERVER,strlen(SERVER));
+  if(GetHostIP() == 0){
+    if( (appData.SockID = CreateConnection()) < 0 ) return -1;
+
+/* HTTP GET string. */
+    strcpy(appData.SendBuff,REQUEST);
+// 1) change Austin Texas to your city
+// 2) you can change metric to imperial if you want temperature in F
+    /* Send the HTTP GET string to the open TCP/IP socket. */
+    sl_Send(appData.SockID, appData.SendBuff, strlen(appData.SendBuff), 0);
+
+    CLI_Write((_u8 *) appData.SendBuff);
+
+
+/* Receive response */
+    sl_Recv(appData.SockID, &appData.Recvbuff[0], MAX_RECV_BUFF_SIZE, 0);
+    appData.Recvbuff[strlen(appData.Recvbuff)] = '\0';
 
 
 
 
+    CLI_Write((_u8 *) appData.Recvbuff);
 
-/***BEGINNNNING OF NEWWWWW CODE****/
+/* find ticker name in response*/
+    pt = strstr(appData.Recvbuff, "id");
+    i = 0;
+    if( NULL != pt ){
+      pt = pt + 5; // skip over id":"
+      while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
+        Id[i] = *pt; // copy into Id string
+        pt++; i++;
+      }
+    }
+    Id[i] = 0;
+
+/* find score Value in response */
+    pt = strstr(appData.Recvbuff, "\"score\"");
+    i = 0;
+    if( NULL != pt ){
+      pt = pt + 8; // skip over "score":
+      while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
+        Score[i] = *pt; // copy into Score string
+        pt++; i++;
+      }
+    }
+    Score[i] = 0;
+
+/* find edxpost in response */
+    pt = strstr(appData.Recvbuff, "edxpost");
+    i = 0;
+    if( NULL != pt ){
+      pt = pt + 9; // skip over edxpost":
+      for(i=0; i<8; i++){
+        Edxpost[i] = *pt; // copy into Edxpost string
+        pt++;
+      }
+    }
+    Edxpost[i] = 0;
+
+    sl_Close(appData.SockID);
+  }
+
+  return 0;
+}
 
 
 
 
+/*!
+    \brief This function obtains the server IP address
+
+    \param[in]      none
+
+    \return         zero for success and -1 for error
+
+    \warning
+*/
+static int32_t GetHostIP(void){
+  int32_t status = -1;
 
 
 
+  status = sl_NetAppDnsGetHostByName(appData.HostName,
+                                       strlen(appData.HostName),
+                                       &appData.DestinationIP,
+                                       SL_AF_INET);
+
+  return 0;
+}
 
 
 
+/*!
+    \brief Create TCP connection with openweathermap.org
 
+    \param[in]      none
+
+    \return         Socket descriptor for success otherwise negative
+
+    \warning
+*/
+static int CreateConnection(void){
+  SlSockAddrIn_t  Addr;
+
+  int sd = 0;
+  int AddrSize = 0;
+  int ret_val = 0;
+
+  Addr.sin_family = SL_AF_INET;
+  Addr.sin_port = sl_Htons(80);
+
+    /* Change the DestinationIP endianity, to big endian */
+  //Addr.sin_addr.s_addr = sl_Htonl(appData.DestinationIP);
+
+    unsigned long mydestination = 0xc0a8010f;
+
+  Addr.sin_addr.s_addr = sl_Htonl(mydestination);
+
+  AddrSize = sizeof(SlSockAddrIn_t);
+
+  sd = sl_Socket(SL_AF_INET,SL_SOCK_STREAM, 0);
+  if( sd < 0 ){
+   // LCD_OutString("Error creating socket\r\n");
+      CLI_Write((_u8 *)" ERROR CREATING SOCKET");
+      return sd;
+  }
+
+  ret_val = sl_Connect(sd, ( SlSockAddr_t *)&Addr, AddrSize);
+  if( ret_val < 0 ){
+        /* error */
+    //LCD_OutString("Error connecting to socket\r\n");
+
+
+      CLI_Write((_u8 *)" ERROR CONNECTING TO SOCKET");
+
+      return ret_val;
+  }
+
+  return sd;
+}
 
