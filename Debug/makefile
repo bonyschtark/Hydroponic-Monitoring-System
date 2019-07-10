@@ -10,6 +10,10 @@ GEN_OPTS__FLAG :=
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
+"./ADCSWTrigger.obj" \
+"./PLL.obj" \
+"./SysTick.obj" \
+"./connect.obj" \
 "./main.obj" \
 "./tm4c1294ncpdt_startup_ccs.obj" \
 "./board/board.obj" \
@@ -182,8 +186,8 @@ getting_started_with_wlan_station.bin: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "main.obj" "tm4c1294ncpdt_startup_ccs.obj" "board\board.obj" "cli_uart\cli_uart.obj" "simplelink\source\device.obj" "simplelink\source\driver.obj" "simplelink\source\flowcont.obj" "simplelink\source\fs.obj" "simplelink\source\netapp.obj" "simplelink\source\netcfg.obj" "simplelink\source\nonos.obj" "simplelink\source\socket.obj" "simplelink\source\spawn.obj" "simplelink\source\wlan.obj" "spi\spi.obj" "timer\timer_tick.obj" 
-	-$(RM) "main.d" "tm4c1294ncpdt_startup_ccs.d" "board\board.d" "cli_uart\cli_uart.d" "simplelink\source\device.d" "simplelink\source\driver.d" "simplelink\source\flowcont.d" "simplelink\source\fs.d" "simplelink\source\netapp.d" "simplelink\source\netcfg.d" "simplelink\source\nonos.d" "simplelink\source\socket.d" "simplelink\source\spawn.d" "simplelink\source\wlan.d" "spi\spi.d" "timer\timer_tick.d" 
+	-$(RM) "ADCSWTrigger.obj" "PLL.obj" "SysTick.obj" "connect.obj" "main.obj" "tm4c1294ncpdt_startup_ccs.obj" "board\board.obj" "cli_uart\cli_uart.obj" "simplelink\source\device.obj" "simplelink\source\driver.obj" "simplelink\source\flowcont.obj" "simplelink\source\fs.obj" "simplelink\source\netapp.obj" "simplelink\source\netcfg.obj" "simplelink\source\nonos.obj" "simplelink\source\socket.obj" "simplelink\source\spawn.obj" "simplelink\source\wlan.obj" "spi\spi.obj" "timer\timer_tick.obj" 
+	-$(RM) "ADCSWTrigger.d" "PLL.d" "SysTick.d" "connect.d" "main.d" "tm4c1294ncpdt_startup_ccs.d" "board\board.d" "cli_uart\cli_uart.d" "simplelink\source\device.d" "simplelink\source\driver.d" "simplelink\source\flowcont.d" "simplelink\source\fs.d" "simplelink\source\netapp.d" "simplelink\source\netcfg.d" "simplelink\source\nonos.d" "simplelink\source\socket.d" "simplelink\source\spawn.d" "simplelink\source\wlan.d" "spi\spi.d" "timer\timer_tick.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 
