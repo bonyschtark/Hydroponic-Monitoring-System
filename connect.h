@@ -21,6 +21,7 @@ int getCurrentYear();
 int getCurrentHour();
 int getCurrentMinute();
 int getCurrentSecond();
+int32_t SendTDS(int id, int val);
 
 
 

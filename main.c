@@ -164,7 +164,9 @@ int main(int argc, char** argv)
      * Note that all profiles and persistent settings that were done on the
      * device will be lost
      */
-    retVal = configureSimpleLinkToDefaultState();
+
+
+     retVal = configureSimpleLinkToDefaultState();
     if(retVal < 0)
     {
         if (DEVICE_NOT_IN_STATION_MODE == retVal)
@@ -172,6 +174,7 @@ int main(int argc, char** argv)
 
         LOOP_FOREVER();
     }
+
 
     CLI_Write((_u8 *)" Device is configured in default state \n\r");
 
@@ -269,7 +272,7 @@ int main(int argc, char** argv)
 */
 
 
-
+/*
 
                                        // activate clock for Port N
       SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R12;
@@ -297,9 +300,11 @@ int main(int argc, char** argv)
       float compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
       float compensationVoltage=averageVoltage/compensationCoefficient;  //temperature compensation
       tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5; //convert voltage value to tds value
+*/
 
-
-
+    //SysTick_Wait10ms(10000);
+     retVal = SendTDS(1, 10);
+    //retVal = Lab16();
 
 
     return 0;
