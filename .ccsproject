@@ -14,4 +14,5 @@
 	<templateProperties value="id=getting_started_with_wlan_station.projectspec.getting_started_with_wlan_station,buildProfile=debug"/>
 	<origin value="C:\ti\CC3100SDK_1.3.0\cc3100-sdk\platform\tiva-c-connected-launchpad\example_project_ccs\getting_started_with_wlan_station\getting_started_with_wlan_station.projectspec"/>
 	<filesToOpen value=""/>
+	<isTargetManual value="false"/>
 </projectOptions>

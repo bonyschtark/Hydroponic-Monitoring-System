@@ -17,18 +17,16 @@
 //#define REQUEST "GET /query?city=Austin%20Texas&id=Jonathan%20Valvano&greet=Hello%20from%20Austin,%20Jon%20and%20Ramesh&edxcode=8086  HTTP/1.1\r\nUser-Agent: Keil\r\nHost: embedded-systems-server.appspot.com\r\n\r\n"
 //#define SERVER "localhost/greengarden/green.php"
 //#define REQUEST "GET /greengarden/green.php?id=100&val=test1 HTTP/1.0\r\n\r\n"
-#define REQUEST "POST /greengarden/garden.php HTTP/1.1\r\nHost: 192.168.1.15\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 14\r\n\r\nid=104&val=new\r\n\r\n"
+#define REQUEST "POST /greengarden/garden.php HTTP/1.1\r\nHost: 192.168.1.8\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 14\r\n\r\nid=107&val=jul\r\n\r\n"
 //Content-Type: application/x-www-form-urlencoded
 
 #define GETTIME "GET /greengarden/gettime.php HTTP/1.0\r\n\r\n"
 
 
-#define SENDTDS "POST /greengarden/garden.php HTTP/1.1\r\nHost: 192.168.1.15\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
+#define SENDTDS "POST /greengarden/green.php HTTP/1.1\r\nHost: 192.168.1.8\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
 int contentLength = 0;
 #define SENDTDS2 "\r\n\r\nid="
-int deviceNum = 0;
 #define SENDTDS3 "&val="
-int val = 0;
 #define SENDTDS4 "\r\n\r\n"
 
 
@@ -51,6 +49,11 @@ int val = 0;
 
 
 
+char buildstr[MAX_SEND_BUFF_SIZE] = "";
+
+
+
+
 /* HTTP Client lib include */
 //#include <http/client/httpcli.h>
 
@@ -65,10 +68,13 @@ _u32 g_DestinationIP;
 _u32 g_BytesReceived; /* variable to store the file size */
 _u8  g_buff[MAX_BUFF_SIZE+1];
 
-char strcontentlength[5];
-   char strdevicenum[10];
-   char strval[10];
-   char buildstr[MAX_SEND_BUFF_SIZE];
+char strcontentlength[5] = "";
+
+   char string[50] = "text ";
+    char buffer[50];
+
+    char mystring[50] = "";
+    char mystring2[50] = "";
 
 
 
@@ -692,6 +698,40 @@ int32_t Lab16(void){
 
 
 
+int buildTDS(int id, int val)  {
+
+
+sprintf(mystring, "%d", id);
+sprintf(mystring2, "%d", val);
+
+CLI_Write((_u8 *) "\r\nmystring: ");
+CLI_Write((_u8 *) mystring);
+CLI_Write((_u8 *) "\r\nmystring2: ");
+CLI_Write((_u8 *) mystring2);
+
+
+
+contentLength = 3 + strlen(mystring) + 5 +strlen(mystring2);
+
+sprintf(strcontentlength, "%d", contentLength);
+CLI_Write((_u8 *) strcontentlength);
+
+
+    strcpy(buildstr, SENDTDS);
+
+    strcat(buildstr, strcontentlength);
+    strcat(buildstr, SENDTDS2);
+
+    strcat(buildstr, mystring);
+    strcat(buildstr, SENDTDS3);
+
+    strcat(buildstr, mystring2);
+    strcat(buildstr, SENDTDS4);
+    return 0;
+}
+
+
+
 
 
 
@@ -711,7 +751,7 @@ int32_t updateLocalTime(void){
     /* Send the HTTP GET string to the open TCP/IP socket. */
     sl_Send(appData.SockID, appData.SendBuff, strlen(appData.SendBuff), 0);
 
-    CLI_Write((_u8 *) appData.SendBuff);
+    //CLI_Write((_u8 *) appData.SendBuff);
 
 
 /* Receive response */
@@ -760,7 +800,7 @@ int32_t updateLocalTime(void){
     }
 
 
-    CLI_Write((_u8 *) appData.Recvbuff);
+    CLI_Write((_u8 *) "Updated Time");
 
    // CLI_Write((_u8 *));
 
@@ -833,34 +873,7 @@ int getCurrentSecond()  {
     return theTime.currSecond;
 }
 
-/*
- *
-    char *pt = NULL;
 
-
-
-
-    char strcontentlength[5];
-    char strdevicenum[10];
-    char strval[10];
-
-    contentLength = 3 + strlen(strcontentlength) + 5 +strlen(strval);
-
-
-
-    char buildstr[MAX_SEND_BUFF_SIZE];
-    strcpy(buildstr, SENDTDS);
-    sprintf(strcontentlength, "%d", contentLength);
-    strcat(buildstr, strcontentlength);
-    strcat(buildstr, SENDTDS2);
-    sprintf(strdevicenum, "%d", id);
-    strcat(buildstr, strdevicenum);
-    strcat(buildstr, SENDTDS3);
-
-    sprintf(strval, "%d", val);
-    strcat(buildstr, strval);
-    strcat(buildstr, SENDTDS4);
- */
 
 
 int32_t SendTDS(int id, int val){
@@ -868,31 +881,11 @@ int32_t SendTDS(int id, int val){
 
     char *pt = NULL;
 
-
-
-
-    strcpy(buildstr, SENDTDS);
-
-
-    sprintf(strcontentlength, "%d", contentLength);
-
-
-
-    strcat(buildstr, strcontentlength);
-       strcat(buildstr, SENDTDS2);
-       sprintf(strdevicenum, "%d", id);
-       strcat(buildstr, strdevicenum);
-       strcat(buildstr, SENDTDS3);
-
-       sprintf(strval, "%d", val);
-       strcat(buildstr, strval);
-       strcat(buildstr, SENDTDS4);
-
-
-
   memcpy(appData.HostName,SERVER,strlen(SERVER));
   if(GetHostIP() == 0){
     if( (appData.SockID = CreateConnection()) < 0 ) return -1;
+
+    buildTDS(id, val);
 
 /* HTTP GET string. */
     strcpy(appData.SendBuff,buildstr);
@@ -954,9 +947,6 @@ int32_t SendTDS(int id, int val){
 
   return 0;
 }
-
-
-
 
 
 

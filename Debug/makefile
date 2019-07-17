@@ -170,7 +170,7 @@ all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 getting_started_with_wlan_station.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: ARM Linker'
-	"C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/bin/armcl" -mv7M4 -me --define=PART_TM4C1294NCPDT --define=TARGET_IS_BLIZZARD_RA1=1 --define=_USE_CLI_ --define=ccs -g --diag_warning=225 --diag_wrap=off --display_error_number -z -m"$getting_started_with_wlan_ap.map" --heap_size=0 --stack_size=704 -i"C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/lib" -i"C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include" --reread_libs --define=PART_TM4C1294NCPDT --define=TARGET_IS_BLIZZARD_RA1=1 --define=_USE_CLI_ --define=ccs --diag_warning=225 --diag_wrap=off --display_error_number --warn_sections --xml_link_info="getting_started_with_wlan_ap_linkInfo.xml" --rom_model -o "getting_started_with_wlan_station.out" $(ORDERED_OBJS)
+	"C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/bin/armcl" -mv7M4 -me --define=PART_TM4C1294NCPDT --define=TARGET_IS_BLIZZARD_RA1=1 --define=_USE_CLI_ --define=ccs -g --diag_warning=225 --diag_wrap=off --display_error_number -z -m"$getting_started_with_wlan_ap.map" --heap_size=0 --stack_size=2000 -i"C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/lib" -i"C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include" --reread_libs --define=PART_TM4C1294NCPDT --define=TARGET_IS_BLIZZARD_RA1=1 --define=_USE_CLI_ --define=ccs --diag_warning=225 --diag_wrap=off --display_error_number --warn_sections --xml_link_info="getting_started_with_wlan_ap_linkInfo.xml" --rom_model -o "getting_started_with_wlan_station.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 	@$(MAKE) --no-print-directory post-build

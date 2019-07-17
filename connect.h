@@ -26,6 +26,7 @@ int32_t SendTDS(int id, int val);
 
 
 
+
 /////* Application specific status/error codes */
 typedef enum{
     DEVICE_NOT_IN_STATION_MODE = -0x7D0,        /* Choosing this number to avoid overlap with host-driver's error codes */

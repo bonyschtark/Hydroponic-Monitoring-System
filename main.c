@@ -137,7 +137,6 @@ int main(int argc, char** argv)
 
     PLL_Init();                      // 120 MHz
     SysTick_Init();
-    //EnableInterrupts();
 
     _i32 retVal = -1;
 
@@ -152,6 +151,17 @@ int main(int argc, char** argv)
     CLI_Configure();
 
     displayBanner();
+
+
+
+    // activate clock for Port N
+SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R12;
+        // allow time for clock to stabilize
+while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R12) == 0){};
+//  ADC0_InitSWTriggerSeq3_Ch0();    // initialize ADC0, software trigger, PE3/AIN0
+
+
+ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
 
     /*
      * Following function configures the device to default state by cleaning
@@ -222,7 +232,8 @@ int main(int argc, char** argv)
     CLI_Write((_u8 *)" Device successfully connected to the internet \n\r");
 
 
-    retVal = Lab16();
+
+    //retVal = Lab16();
     if(retVal == 0){  // valid
 
         CLI_Write((_u8 *)" Device successfully got the weather \n\r");
@@ -262,25 +273,6 @@ int main(int argc, char** argv)
 
     */
 
-/*
-    SYSCTL_RCGCTIMER_R |= SYSCTL_RCGCGPIO_R4;
-    while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R4) == 0){};
-
-    GPIO_PORTE_AFSEL_R |= 0x08;     // 2) enable alternate function on PE3
-    GPIO_PORTE_DEN_R &= ~0x08;      // 3) disable digital I/O on PE3
-    GPIO_PORTE_AMSEL_R |= 0x08;     // 4) enable analog functionality on PE3
-*/
-
-
-/*
-
-                                       // activate clock for Port N
-      SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R12;
-                                      // allow time for clock to stabilize
-      while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R12) == 0){};
-    //  ADC0_InitSWTriggerSeq3_Ch0();    // initialize ADC0, software trigger, PE3/AIN0
-      ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
-
       int SCOUNT = 40;
       int buffer[40];
       int i;
@@ -300,14 +292,22 @@ int main(int argc, char** argv)
       float compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
       float compensationVoltage=averageVoltage/compensationCoefficient;  //temperature compensation
       tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5; //convert voltage value to tds value
-*/
+
+      int mytds = (int) tdsValue;
+
+      retVal = SendTDS(1, mytds);
+
 
     //SysTick_Wait10ms(10000);
-     retVal = SendTDS(1, 10);
+
     //retVal = Lab16();
 
 
-    return 0;
+
+      while(1)  {
+
+      }
+      return 0;
 }
 
 
