@@ -24,6 +24,11 @@
 
 
 #define SENDTDS "POST /greengarden/green.php HTTP/1.1\r\nHost: 192.168.1.8\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
+
+#define GETINSTRUCT "GET /greengarden/instruction.php HTTP/1.0\r\n\r\n"
+
+
+
 int contentLength = 0;
 #define SENDTDS2 "\r\n\r\nid="
 #define SENDTDS3 "&val="
@@ -905,6 +910,117 @@ int32_t SendTDS(int id, int val){
 
 
     CLI_Write((_u8 *) appData.Recvbuff);
+
+/* find ticker name in response*/
+    pt = strstr(appData.Recvbuff, "id");
+    i = 0;
+    if( NULL != pt ){
+      pt = pt + 5; // skip over id":"
+      while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
+        Id[i] = *pt; // copy into Id string
+        pt++; i++;
+      }
+    }
+    Id[i] = 0;
+
+/* find score Value in response */
+    pt = strstr(appData.Recvbuff, "\"score\"");
+    i = 0;
+    if( NULL != pt ){
+      pt = pt + 8; // skip over "score":
+      while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
+        Score[i] = *pt; // copy into Score string
+        pt++; i++;
+      }
+    }
+    Score[i] = 0;
+
+/* find edxpost in response */
+    pt = strstr(appData.Recvbuff, "edxpost");
+    i = 0;
+    if( NULL != pt ){
+      pt = pt + 9; // skip over edxpost":
+      for(i=0; i<8; i++){
+        Edxpost[i] = *pt; // copy into Edxpost string
+        pt++;
+      }
+    }
+    Edxpost[i] = 0;
+
+    sl_Close(appData.SockID);
+  }
+
+  return 0;
+}
+
+
+int32_t GetInstruction()
+{
+    uint32_t i;
+
+    char *pt = NULL;
+
+  memcpy(appData.HostName,SERVER,strlen(SERVER));
+  if(GetHostIP() == 0){
+    if( (appData.SockID = CreateConnection()) < 0 ) return -1;
+
+
+/* HTTP GET string. */
+    strcpy(appData.SendBuff,GETINSTRUCT);
+// 1) change Austin Texas to your city
+// 2) you can change metric to imperial if you want temperature in F
+    /* Send the HTTP GET string to the open TCP/IP socket. */
+    sl_Send(appData.SockID, appData.SendBuff, strlen(appData.SendBuff), 0);
+
+    CLI_Write((_u8 *) appData.SendBuff);
+
+
+/* Receive response */
+    sl_Recv(appData.SockID, &appData.Recvbuff[0], MAX_RECV_BUFF_SIZE, 0);
+    appData.Recvbuff[strlen(appData.Recvbuff)] = '\0';
+
+    CLI_Write((_u8 *) appData.Recvbuff);
+
+    int j = 0;
+    int found = 0;
+    int mydevice = 0;
+    char strdevice[20] = "";
+    char strparam1[20] = "";
+    int k = 0;
+    while(j < strlen(appData.Recvbuff) && found == 0)  {
+        if(appData.Recvbuff[j] == '*')  {
+            if(appData.Recvbuff[j+1] == '*')  {
+                k = 0;
+                j = j+2;
+                while(appData.Recvbuff[j] >= '0' && appData.Recvbuff[j] <= '9')  {
+                    strdevice[k] = appData.Recvbuff[j];
+                    k++;
+                    j++;
+                }
+                    strdevice[k] = '\0';
+                    found = 1;
+            }
+        }
+        if(appData.Recvbuff[j] == '*')  {
+            if(appData.Recvbuff[j+1] == 'P')  {
+                k = 0;
+                j = j+2;
+                while(appData.Recvbuff[j] >= '0' && appData.Recvbuff[j] <= '9')  {
+                    strparam1[k] = appData.Recvbuff[j];
+                    k++;
+                    j++;
+                }
+                strparam1[k] = '\0';
+            }
+        }
+        j++;
+    }
+
+    CLI_Write((_u8 *) "\r\n\r\n strdevice: ");
+    CLI_Write((_u8 *) strdevice);
+    CLI_Write((_u8 *) "\r\n strparam1");
+    CLI_Write((_u8 *) strparam1);
+
 
 /* find ticker name in response*/
     pt = strstr(appData.Recvbuff, "id");

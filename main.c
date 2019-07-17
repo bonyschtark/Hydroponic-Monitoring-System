@@ -241,27 +241,61 @@ ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
     }
 
     retVal = updateLocalTime();
-
     currentMinutes = getCurrentMinute();
     currentHour = getCurrentHour();
     currentDay = getCurrentDay();
     currentMonth = getCurrentMonth();
     currentYear = getCurrentYear();
     currentSecond = getCurrentSecond();
+    lastSyncMinutes = currentMinutes;
+    int previousMeasureHour = currentHour - 1;
 
 
-    /*
 
-    if(lastSyncMinutes / 10 != currentMinutes / 10)  {
-        SynchronizeTime();
+    while(1)  {
+
+        if(lastSyncMinutes / 10 != currentMinutes / 10)  {
+            retVal = updateLocalTime();
+            currentMinutes = getCurrentMinute();
+            currentHour = getCurrentHour();
+            currentDay = getCurrentDay();
+            currentMonth = getCurrentMonth();
+            currentYear = getCurrentYear();
+            currentSecond = getCurrentSecond();
+
+        }
+
+    if(previousMeasureHour != currentHour)  {
+
+        int SCOUNT = 40;
+        int buffer[40];
+        int i;
+
+        for(i = 0; i < SCOUNT; i++)  {
+
+            SysTick_Wait10ms(10);
+            buffer[i] = ADC0_InSeq3();
+        }
+
+
+        float tdsValue;
+        float temperature = 25;
+        float averageVoltage;
+        averageVoltage = median(buffer, SCOUNT) * (float)3.3 / 4096.0;
+
+        float compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
+        float compensationVoltage=averageVoltage/compensationCoefficient;  //temperature compensation
+        tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5; //convert voltage value to tds value
+
+        int mytds = (int) tdsValue;
+
+        retVal = SendTDS(1, mytds);
+
+        GetInstruction();
+        previousMeasureHour = currentHour;
     }
 
-    //if(previousMeasureHour != currentHour)  {
-        getTDS();
-        sendTDS();
-        previousMeasureHour = currentHour;
-    //}
-
+    /*
     if(lastMeasurementHour < currentHour)  {
         getTDS();
         getPH();
@@ -273,29 +307,6 @@ ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
 
     */
 
-      int SCOUNT = 40;
-      int buffer[40];
-      int i;
-
-      for(i = 0; i < SCOUNT; i++)  {
-
-          SysTick_Wait10ms(10);
-          buffer[i] = ADC0_InSeq3();
-      }
-
-
-      float tdsValue;
-      float temperature = 25;
-      float averageVoltage;
-      averageVoltage = median(buffer, SCOUNT) * (float)3.3 / 4096.0;
-
-      float compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
-      float compensationVoltage=averageVoltage/compensationCoefficient;  //temperature compensation
-      tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5; //convert voltage value to tds value
-
-      int mytds = (int) tdsValue;
-
-      retVal = SendTDS(1, mytds);
 
 
     //SysTick_Wait10ms(10000);
@@ -304,8 +315,8 @@ ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
 
 
 
-      while(1)  {
-
+          SysTick_Wait10ms(6000);
+          currentMinutes++;
       }
       return 0;
 }
