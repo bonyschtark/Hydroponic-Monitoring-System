@@ -295,23 +295,6 @@ ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
         previousMeasureHour = currentHour;
     }
 
-    /*
-    if(lastMeasurementHour < currentHour)  {
-        getTDS();
-        getPH();
-        getTemp();
-        getMoisture();
-        lastMeasurementHour = currentHour;
-        getInstructions();
-    }
-
-    */
-
-
-
-    //SysTick_Wait10ms(10000);
-
-    //retVal = Lab16();
 
 
 
