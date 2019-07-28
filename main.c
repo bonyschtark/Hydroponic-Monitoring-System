@@ -72,35 +72,6 @@ int currentSecond = 0;
 int lastSyncMinutes = 0;
 
 
-/*
-   if(millis()-analogSampleTimepoint > 40U)     //every 40 milliseconds,read the analog value from the ADC
-   {
-     analogSampleTimepoint = millis();
-     analogBuffer[analogBufferIndex] = analogRead(TdsSensorPin);    //read the analog value and store into the buffer
-     analogBufferIndex++;
-     if(analogBufferIndex == SCOUNT)
-         analogBufferIndex = 0;
-   }
-   static unsigned long printTimepoint = millis();
-   if(millis()-printTimepoint > 800U)
-   {
-      printTimepoint = millis();
-      for(copyIndex=0;copyIndex<SCOUNT;copyIndex++)
-        analogBufferTemp[copyIndex]= analogBuffer[copyIndex];
-      averageVoltage = getMedianNum(analogBufferTemp,SCOUNT) * (float)VREF / 1024.0; // read the analog value more stable by the median filtering algorithm, and convert to voltage value
-      float compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
-      float compensationVolatge=averageVoltage/compensationCoefficient;  //temperature compensation
-      tdsValue=(133.42*compensationVolatge*compensationVolatge*compensationVolatge - 255.86*compensationVolatge*compensationVolatge + 857.39*compensationVolatge)*0.5; //convert voltage value to tds value
-      //Serial.print("voltage:");
-      //Serial.print(averageVoltage,2);
-      //Serial.print("V   ");
-      Serial.print("TDS Value:");
-      Serial.print(tdsValue,0);
-      Serial.println("ppm");
-
-
-*/
-
 
 float median(int x[], int n) {
     int temp;
@@ -125,6 +96,77 @@ float median(int x[], int n) {
         return x[n/2];
     }
 }
+
+
+void getTDS()  {
+
+    ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
+
+    int SCOUNT = 40;
+    int buffer[40];
+    int i;
+    int myVal;
+
+    for(i = 0; i < SCOUNT; i++)  {
+
+        SysTick_Wait10ms(10);
+        buffer[i] = ADC0_InSeq3();
+    }
+
+
+    float tdsValue;
+    float temperature = 25;
+    float averageVoltage;
+    averageVoltage = median(buffer, SCOUNT) * (float)3.3 / 4096.0;
+
+    float compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
+    float compensationVoltage=averageVoltage/compensationCoefficient;  //temperature compensation
+    tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5; //convert voltage value to tds value
+
+    int mytds = (int) tdsValue;
+
+    myVal = SendTDS(1, mytds);
+
+}
+
+
+
+
+void getPh()  {
+    ADC0_InitSWTriggerSeq3(1);       // initialize ADC0, software trigger, PE3/AIN0
+
+
+    int result;
+    result = ADC0_InSeq3();
+
+    int phCount = 40;
+    int phBuffer[40];
+    int i;
+    float phVal;
+
+    for(i = 0; i < phCount; i++)  {
+
+        SysTick_Wait10ms(10);
+        phBuffer[i] = ADC0_InSeq3();
+    }
+
+    float phVoltage;
+    phVoltage = median(phBuffer, phCount)*(float) 3.3/4096;
+    double newPh;
+    newPh = -6.3829 * phVoltage + 16.76;
+
+    phVal = 3.5*phVoltage;
+
+    int myph = (int) phVal;
+
+    result = SendDecimal(2, newPh);
+
+
+}
+
+
+
+
 
 
 
@@ -266,32 +308,10 @@ ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
         }
 
     if(previousMeasureHour != currentHour)  {
-
-        int SCOUNT = 40;
-        int buffer[40];
-        int i;
-
-        for(i = 0; i < SCOUNT; i++)  {
-
-            SysTick_Wait10ms(10);
-            buffer[i] = ADC0_InSeq3();
-        }
-
-
-        float tdsValue;
-        float temperature = 25;
-        float averageVoltage;
-        averageVoltage = median(buffer, SCOUNT) * (float)3.3 / 4096.0;
-
-        float compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
-        float compensationVoltage=averageVoltage/compensationCoefficient;  //temperature compensation
-        tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5; //convert voltage value to tds value
-
-        int mytds = (int) tdsValue;
-
-        retVal = SendTDS(1, mytds);
-
+        getTDS();
+        getPh();
         GetInstruction();
+        ExecuteInstructions();
         previousMeasureHour = currentHour;
     }
 

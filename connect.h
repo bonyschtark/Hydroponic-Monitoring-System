@@ -22,6 +22,7 @@ int getCurrentHour();
 int getCurrentMinute();
 int getCurrentSecond();
 int32_t SendTDS(int id, int val);
+int32_t SendDecimal(int id, double decimalVal);
 int32_t GetInstruction();
 
 
@@ -49,8 +50,19 @@ typedef enum{
 }e_AppStatusCodes;
 
 
+int numberOfInstructions;
 
 
+struct instruct {
+    int devicenum;
+    int param1;
+    int param2;
+    int param3;
+    int param4;
+};
+
+
+struct instruct instructions[40];
 
 /*
  * GLOBAL VARIABLES -- Start
