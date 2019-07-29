@@ -29,6 +29,23 @@ int32_t GetInstruction();
 
 
 
+#define GPIO_PORTJ0             (*((volatile uint32_t *)0x40060004))
+#define GPIO_PORTJ_DIR_R        (*((volatile uint32_t *)0x40060400))
+#define GPIO_PORTJ_AFSEL_R      (*((volatile uint32_t *)0x40060420))
+#define GPIO_PORTJ_PUR_R        (*((volatile uint32_t *)0x40060510))
+#define GPIO_PORTJ_DEN_R        (*((volatile uint32_t *)0x4006051C))
+#define GPIO_PORTJ_AMSEL_R      (*((volatile uint32_t *)0x40060528))
+#define GPIO_PORTJ_PCTL_R       (*((volatile uint32_t *)0x4006052C))
+#define SYSCTL_RCGCGPIO_R       (*((volatile uint32_t *)0x400FE608))
+#define SYSCTL_RCGCGPIO_R8      0x00000100  // GPIO Port J Run Mode Clock
+                                            // Gating Control
+#define SYSCTL_PRGPIO_R         (*((volatile uint32_t *)0x400FEA08))
+#define SYSCTL_PRGPIO_R8        0x00000100  // GPIO Port J Peripheral Ready
+
+
+
+
+
 /////* Application specific status/error codes */
 typedef enum{
     DEVICE_NOT_IN_STATION_MODE = -0x7D0,        /* Choosing this number to avoid overlap with host-driver's error codes */

@@ -73,6 +73,8 @@ int lastSyncMinutes = 0;
 
 
 
+
+
 float median(int x[], int n) {
     int temp;
     int i, j;
@@ -204,6 +206,19 @@ while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R12) == 0){};
 
 
 ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
+
+// activate clock for Port J
+SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R8;
+  // allow time for clock to stabilize
+while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R8) == 0){};
+GPIO_PORTJ_DIR_R |= 0x01;       // make PJ0 in (PJ0 built-in SW1)
+GPIO_PORTJ_AFSEL_R &= ~0x01;     // disable alt funct on PJ0
+GPIO_PORTJ_DEN_R |= 0x01;        // enable digital I/O on PJ0
+  // configure PJ0 as GPIO
+GPIO_PORTJ_PCTL_R = (GPIO_PORTJ_PCTL_R&0xFFFFFFF0)+0x00000000;
+GPIO_PORTJ_AMSEL_R &= ~0x01;     // disable analog functionality on PJ0
+
+
 
     /*
      * Following function configures the device to default state by cleaning

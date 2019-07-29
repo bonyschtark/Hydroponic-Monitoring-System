@@ -1288,18 +1288,18 @@ int32_t GetInstruction()
 
 int32_t ExecuteInstructions()  {
     int i = 0;
-    /*
+
     for(i = 0; i < numberOfInstructions; i++)  {
         if(instructions[i].devicenum == 1)  {
-        //    GPIO_PORTJ0 = 1;
+            GPIO_PORTJ0 = 1;
             SysTick_Wait10ms(instructions[i].param1 * 100);
-        //    GPIO_PORTJ0 = 0;
+            GPIO_PORTJ0 = 0;
 
 
 
         }
     }
-    */
+
     return i;
 
 }
