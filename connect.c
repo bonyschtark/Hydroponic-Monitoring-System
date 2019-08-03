@@ -1294,8 +1294,14 @@ int32_t ExecuteInstructions()  {
             GPIO_PORTJ0 = 1;
             SysTick_Wait10ms(instructions[i].param1 * 100);
             GPIO_PORTJ0 = 0;
+            instructions[i].executed = 1;
+        }
+    }
 
 
+
+    for(i = 0; i < numberOfInstructions; i++)  {
+        if(instructions[i].executed == 1)  {
 
         }
     }

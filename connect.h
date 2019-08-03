@@ -46,6 +46,7 @@ int32_t GetInstruction();
 
 
 
+
 /////* Application specific status/error codes */
 typedef enum{
     DEVICE_NOT_IN_STATION_MODE = -0x7D0,        /* Choosing this number to avoid overlap with host-driver's error codes */
@@ -76,6 +77,7 @@ struct instruct {
     int param2;
     int param3;
     int param4;
+    int executed;
 };
 
 
