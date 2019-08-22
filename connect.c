@@ -27,7 +27,9 @@
 
 #define GETINSTRUCT "GET /greengarden/instruction.php HTTP/1.0\r\n\r\n"
 #define GETINSTRUCTIONCOUNT "GET /greengarden/getinstructioncount.php HTTP/1.0\r\n\r\n"
-#define SENDINSTRUCTIONACK "GET /greengarden/sendinstructionack.php HTTP/1.0\r\n\r\n"
+#define SENDINSTACK "GET /greengarden/sendinstructionack.php?id="
+
+#define SENDINSTACK2 " HTTP/1.0\r\n\r\n"
 
 
 
@@ -709,20 +711,20 @@ int32_t Lab16(void){
 int buildTDS(int id, int val)  {
 
 
-sprintf(mystring, "%d", id);
-sprintf(mystring2, "%d", val);
+    sprintf(mystring, "%d", id);
+    sprintf(mystring2, "%d", val);
 
-CLI_Write((_u8 *) "\r\nmystring: ");
-CLI_Write((_u8 *) mystring);
-CLI_Write((_u8 *) "\r\nmystring2: ");
-CLI_Write((_u8 *) mystring2);
+    CLI_Write((_u8 *) "\r\nmystring: ");
+    CLI_Write((_u8 *) mystring);
+    CLI_Write((_u8 *) "\r\nmystring2: ");
+    CLI_Write((_u8 *) mystring2);
 
 
 
-contentLength = 3 + strlen(mystring) + 5 +strlen(mystring2);
+    contentLength = 3 + strlen(mystring) + 5 +strlen(mystring2);
 
-sprintf(strcontentlength, "%d", contentLength);
-CLI_Write((_u8 *) strcontentlength);
+    sprintf(strcontentlength, "%d", contentLength);
+    CLI_Write((_u8 *) strcontentlength);
 
 
     strcpy(buildstr, SENDTDS);
@@ -769,10 +771,22 @@ int buildDecimal(int id, float decimalVal)  {
     return 0;
 }
 
+int buildack(int id)  {
+
+    sprintf(mystring, "%d", id);
+
+    contentLength = 3 + strlen(mystring);
+
+    sprintf(strcontentlength, "%d", contentLength);
 
 
+    strcpy(buildstr, SENDINSTACK);
 
+    strcat(buildstr, mystring);
+    strcat(buildstr, SENDINSTACK2);
 
+    return 0;
+}
 
 
 
@@ -1185,6 +1199,7 @@ int getNextInstruction()  {
     int mydevice = 0;
     char strdevice[20] = "";
     char strparam1[20] = "";
+    char strId[20] = "";
     int k = 0;
     while(j < strlen(appData.Recvbuff) && found == 0)  {
         if(appData.Recvbuff[j] == '*')  {
@@ -1212,12 +1227,25 @@ int getNextInstruction()  {
                 strparam1[k] = '\0';
             }
         }
+        if(appData.Recvbuff[j] == '*')  {
+            if(appData.Recvbuff[j+1] == 'I')  {
+                k = 0;
+                j = j+2;
+                while(appData.Recvbuff[j] >= '0' && appData.Recvbuff[j] <= '9')  {
+                    strId[k] = appData.Recvbuff[j];
+                    k++;
+                    j++;
+                }
+                strId[k] = '\0';
+            }
+        }
         j++;
     }
 
     if(found == 1)  {
         instructions[numberOfInstructions].devicenum = atoi(strdevice);
         instructions[numberOfInstructions].param1 = atoi(strparam1);
+        instructions[numberOfInstructions].idInstruction = atoi(strId);
         numberOfInstructions++;
     }  else {
         CLI_Write((_u8 *) "No Instructions Found");
@@ -1268,6 +1296,80 @@ int getNextInstruction()  {
 
 
 
+int32_t SendAck(int instructId)  {
+        uint32_t i;
+
+        char *pt = NULL;
+
+      memcpy(appData.HostName,SERVER,strlen(SERVER));
+      if(GetHostIP() == 0){
+        if( (appData.SockID = CreateConnection()) < 0 ) return -1;
+
+        buildack(instructId);
+
+    /* HTTP GET string. */
+        strcpy(appData.SendBuff,buildstr);
+    // 1) change Austin Texas to your city
+    // 2) you can change metric to imperial if you want temperature in F
+        /* Send the HTTP GET string to the open TCP/IP socket. */
+        sl_Send(appData.SockID, appData.SendBuff, strlen(appData.SendBuff), 0);
+
+        CLI_Write((_u8 *) appData.SendBuff);
+
+
+    /* Receive response */
+        sl_Recv(appData.SockID, &appData.Recvbuff[0], MAX_RECV_BUFF_SIZE, 0);
+        appData.Recvbuff[strlen(appData.Recvbuff)] = '\0';
+
+
+
+
+        CLI_Write((_u8 *) appData.Recvbuff);
+
+    /* find ticker name in response*/
+        pt = strstr(appData.Recvbuff, "id");
+        i = 0;
+        if( NULL != pt ){
+          pt = pt + 5; // skip over id":"
+          while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
+            Id[i] = *pt; // copy into Id string
+            pt++; i++;
+          }
+        }
+        Id[i] = 0;
+
+    /* find score Value in response */
+        pt = strstr(appData.Recvbuff, "\"score\"");
+        i = 0;
+        if( NULL != pt ){
+          pt = pt + 8; // skip over "score":
+          while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
+            Score[i] = *pt; // copy into Score string
+            pt++; i++;
+          }
+        }
+        Score[i] = 0;
+
+    /* find edxpost in response */
+        pt = strstr(appData.Recvbuff, "edxpost");
+        i = 0;
+        if( NULL != pt ){
+          pt = pt + 9; // skip over edxpost":
+          for(i=0; i<8; i++){
+            Edxpost[i] = *pt; // copy into Edxpost string
+            pt++;
+          }
+        }
+        Edxpost[i] = 0;
+
+        sl_Close(appData.SockID);
+      }
+
+      return 0;
+}
+
+
+
 
 
 
@@ -1302,7 +1404,7 @@ int32_t ExecuteInstructions()  {
 
     for(i = 0; i < numberOfInstructions; i++)  {
         if(instructions[i].executed == 1)  {
-
+            SendAck(instructions[i].idInstruction);
         }
     }
 
@@ -1363,7 +1465,7 @@ int CreateConnection(void){
     /* Change the DestinationIP endianity, to big endian */
   //Addr.sin_addr.s_addr = sl_Htonl(appData.DestinationIP);
 
-    unsigned long mydestination = 0xc0a80108;
+    unsigned long mydestination = 0xc0a80105;
 
   Addr.sin_addr.s_addr = sl_Htonl(mydestination);
 

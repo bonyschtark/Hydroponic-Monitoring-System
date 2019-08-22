@@ -24,7 +24,7 @@ int getCurrentSecond();
 int32_t SendTDS(int id, int val);
 int32_t SendDecimal(int id, double decimalVal);
 int32_t GetInstruction();
-
+int32_t SendAcknowledgment(int instructId);
 
 
 
@@ -72,6 +72,7 @@ int numberOfInstructions;
 
 
 struct instruct {
+    int idInstruction;
     int devicenum;
     int param1;
     int param2;

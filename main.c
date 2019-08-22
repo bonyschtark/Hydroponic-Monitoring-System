@@ -74,6 +74,8 @@ int lastSyncMinutes = 0;
 
 #define GPIO_PORTL0             (*((volatile uint32_t *)0x40062004))
 
+#define GPIO_PORTL1             (*((volatile uint32_t *)0x40062008))
+
 
 float median(int x[], int n) {
     int temp;
@@ -222,6 +224,9 @@ GPIO_PORTJ_AMSEL_R &= ~0x01;     // disable analog functionality on PJ0
 // activate clock for Port L
 SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R10;
 while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R10) == 0){};
+
+/*
+
 GPIO_PORTL_DIR_R |= 0x01;       // make PL0 in (PJ0 built-in SW1)
 GPIO_PORTL_AFSEL_R &= ~0x01;     // disable alt funct on PJ0
 GPIO_PORTL_DEN_R |= 0x01;        // enable digital I/O on PJ0
@@ -229,12 +234,30 @@ GPIO_PORTL_DEN_R |= 0x01;        // enable digital I/O on PJ0
 GPIO_PORTL_PCTL_R = (GPIO_PORTL_PCTL_R&0xFFFFFFF0)+0x00000000;
 //GPIO_PORTL_AMSEL_R &= ~0x01;     // disable analog functionality on PJ0
 
+*/
+
+    GPIO_PORTL_DIR_R |= 0x0F;       // make PL0 in (PJ0 built-in SW1)
+    GPIO_PORTL_AFSEL_R &= ~0x0F;     // disable alt funct on PJ0
+    GPIO_PORTL_DEN_R |= 0x0F;        // enable digital I/O on PJ0
 
 
-        GPIO_PORTL0 = 1;
+/*
+
+    GPIO_PORTL_DATA_R |= 0x01;
+
+    //GPIO_PORTL0 = 1;
         SysTick_Wait10ms(100);
-        GPIO_PORTL0 = 0;
+        //GPIO_PORTL0 = 0;
 
+        GPIO_PORTL_DATA_R &= ~0x01;
+
+        GPIO_PORTL_DATA_R |= 0x02;
+
+       // GPIO_PORTL1 = 1;
+        SysTick_Wait10ms(100);
+        GPIO_PORTL_DATA_R &= ~0x02;
+      //  GPIO_PORTL1 = 0;
+*/
 
 
 
