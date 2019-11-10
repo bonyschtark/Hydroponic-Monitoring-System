@@ -22,7 +22,7 @@ int getCurrentHour();
 int getCurrentMinute();
 int getCurrentSecond();
 int32_t SendTDS(int id, int val);
-int32_t SendDecimal(int id, double decimalVal);
+int32_t SendDecimal(char* id, double decimalVal);
 int32_t GetInstruction();
 int32_t SendAcknowledgment(int instructId);
 
@@ -58,12 +58,9 @@ typedef enum{
     FORMAT_NOT_SUPPORTED = INVALID_SERVER_RESPONSE - 1,
     FILE_WRITE_ERROR = FORMAT_NOT_SUPPORTED - 1,
     INVALID_FILE = FILE_WRITE_ERROR - 1,
-
-
-        LAN_CONNECTION_FAILED = -0x7D0,        /* Choosing this number to avoid overlap with host-driver's error codes */
-        INTERNET_CONNECTION_FAILED = LAN_CONNECTION_FAILED - 1,
-
-        STATUS_CODE_MAX = -0xBB8
+    LAN_CONNECTION_FAILED = -0x7D0,        /* Choosing this number to avoid overlap with host-driver's error codes */
+    INTERNET_CONNECTION_FAILED = LAN_CONNECTION_FAILED - 1,
+    STATUS_CODE_MAX = -0xBB8
 
 }e_AppStatusCodes;
 
@@ -84,44 +81,5 @@ struct instruct {
 
 struct instruct instructions[40];
 
-/*
- * GLOBAL VARIABLES -- Start
- */
-
-
-//_i32 g_SockID = 0;
-
-/*
- * GLOBAL VARIABLES -- End
- */
-
-
-
-
-
-/*
- * GLOBAL VARIABLES -- Start
- */
-
-/*
- * GLOBAL VARIABLES -- End
- */
-
-
-/*
- * STATIC FUNCTION DEFINITIONS -- Start
- */
-
 
 #endif // __TM4C1294NCPDT_H__
-
-
-/*
- * STATIC FUNCTION DEFINITIONS -- End
- */
-
-
-
-/*
- * STATIC FUNCTION DEFINITIONS -- End
- */

@@ -13,32 +13,19 @@
 
 #define SL_STOP_TIMEOUT        0xFF
 
-#define SERVER  "embedded-systems-server8.appspot.com"
-//#define REQUEST "GET /query?city=Austin%20Texas&id=Jonathan%20Valvano&greet=Hello%20from%20Austin,%20Jon%20and%20Ramesh&edxcode=8086  HTTP/1.1\r\nUser-Agent: Keil\r\nHost: embedded-systems-server.appspot.com\r\n\r\n"
-//#define SERVER "localhost/greengarden/green.php"
-//#define REQUEST "GET /greengarden/green.php?id=100&val=test1 HTTP/1.0\r\n\r\n"
-#define REQUEST "POST /greengarden/garden.php HTTP/1.1\r\nHost: 192.168.1.8\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 14\r\n\r\nid=107&val=jul\r\n\r\n"
-//Content-Type: application/x-www-form-urlencoded
-
-#define GETTIME "GET /greengarden/gettime.php HTTP/1.0\r\n\r\n"
 
 
-#define SENDTDS "POST /greengarden/green.php HTTP/1.1\r\nHost: 192.168.1.8\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
+#define SERVER  "SERVER"
 
 #define GETINSTRUCT "GET /greengarden/instruction.php HTTP/1.0\r\n\r\n"
 #define GETINSTRUCTIONCOUNT "GET /greengarden/getinstructioncount.php HTTP/1.0\r\n\r\n"
-#define SENDINSTACK "GET /greengarden/sendinstructionack.php?id="
-
-#define SENDINSTACK2 " HTTP/1.0\r\n\r\n"
 
 
+#define GETTIME "GET /greengarden/gettime.php HTTP/1.0\r\n\r\n"
+#define REQUEST "POST /greengarden/garden.php HTTP/1.1\r\nHost: 192.168.1.8\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 14\r\n\r\nid=107&val=jul\r\n\r\n"
 
 
-int contentLength = 0;
-#define SENDTDS2 "\r\n\r\nid="
-#define SENDTDS3 "&val="
-#define SENDTDS4 "\r\n\r\n"
-
+#define SERVER  "SERVER"
 
 
 #define BAUD_RATE           115200
@@ -59,9 +46,6 @@ int contentLength = 0;
 
 
 
-char buildstr[MAX_SEND_BUFF_SIZE] = "";
-
-
 
 
 /* HTTP Client lib include */
@@ -77,15 +61,6 @@ _u32 g_Status;
 _u32 g_DestinationIP;
 _u32 g_BytesReceived; /* variable to store the file size */
 _u8  g_buff[MAX_BUFF_SIZE+1];
-
-char strcontentlength[5] = "";
-
-   char string[50] = "text ";
-    char buffer[50];
-
-    char mystring[50] = "";
-    char mystring2[50] = "";
-
 
 
 
@@ -120,14 +95,6 @@ char Weather[MAXLEN];
 char Id[MAXLEN];
 char Score[MAXLEN];
 char Edxpost[MAXLEN];
-
-/*
- * GLOBAL VARIABLES -- Start
- */
-
-
-
-
 
 
 #define APPLICATION_VERSION "1.3.0"
@@ -634,12 +601,50 @@ void displayBanner()
     CLI_Write((_u8 *)"\n\r*******************************************************************************\n\r");
 }
 
+void performcleanup()  {
+    uint32_t i;
+    char *pt = NULL;
+    /* find ticker name in response*/
+        pt = strstr(appData.Recvbuff, "id");
+        i = 0;
+        if( NULL != pt ){
+          pt = pt + 5; // skip over id":"
+          while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
+            Id[i] = *pt; // copy into Id string
+            pt++; i++;
+          }
+        }
+        Id[i] = 0;
+
+    /* find score Value in response */
+        pt = strstr(appData.Recvbuff, "\"score\"");
+        i = 0;
+        if( NULL != pt ){
+          pt = pt + 8; // skip over "score":
+          while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
+            Score[i] = *pt; // copy into Score string
+            pt++; i++;
+          }
+        }
+        Score[i] = 0;
+
+    /* find edxpost in response */
+        pt = strstr(appData.Recvbuff, "edxpost");
+        i = 0;
+        if( NULL != pt ){
+          pt = pt + 9; // skip over edxpost":
+          for(i=0; i<8; i++){
+            Edxpost[i] = *pt; // copy into Edxpost string
+            pt++;
+          }
+        }
+        Edxpost[i] = 0;
+}
+
 
 
 int32_t Lab16(void){
-    uint32_t i;
 
-    char *pt = NULL;
 
   memcpy(appData.HostName,SERVER,strlen(SERVER));
   if(GetHostIP() == 0){
@@ -664,41 +669,7 @@ int32_t Lab16(void){
 
     CLI_Write((_u8 *) appData.Recvbuff);
 
-/* find ticker name in response*/
-    pt = strstr(appData.Recvbuff, "id");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 5; // skip over id":"
-      while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
-        Id[i] = *pt; // copy into Id string
-        pt++; i++;
-      }
-    }
-    Id[i] = 0;
-
-/* find score Value in response */
-    pt = strstr(appData.Recvbuff, "\"score\"");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 8; // skip over "score":
-      while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
-        Score[i] = *pt; // copy into Score string
-        pt++; i++;
-      }
-    }
-    Score[i] = 0;
-
-/* find edxpost in response */
-    pt = strstr(appData.Recvbuff, "edxpost");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 9; // skip over edxpost":
-      for(i=0; i<8; i++){
-        Edxpost[i] = *pt; // copy into Edxpost string
-        pt++;
-      }
-    }
-    Edxpost[i] = 0;
+    performcleanup();
 
     sl_Close(appData.SockID);
   }
@@ -708,92 +679,12 @@ int32_t Lab16(void){
 
 
 
-int buildTDS(int id, int val)  {
 
-
-    sprintf(mystring, "%d", id);
-    sprintf(mystring2, "%d", val);
-
-    CLI_Write((_u8 *) "\r\nmystring: ");
-    CLI_Write((_u8 *) mystring);
-    CLI_Write((_u8 *) "\r\nmystring2: ");
-    CLI_Write((_u8 *) mystring2);
-
-
-
-    contentLength = 3 + strlen(mystring) + 5 +strlen(mystring2);
-
-    sprintf(strcontentlength, "%d", contentLength);
-    CLI_Write((_u8 *) strcontentlength);
-
-
-    strcpy(buildstr, SENDTDS);
-
-    strcat(buildstr, strcontentlength);
-    strcat(buildstr, SENDTDS2);
-
-    strcat(buildstr, mystring);
-    strcat(buildstr, SENDTDS3);
-
-    strcat(buildstr, mystring2);
-    strcat(buildstr, SENDTDS4);
-    return 0;
-}
-
-
-
-
-int buildDecimal(int id, float decimalVal)  {
-
-
-    sprintf(mystring, "%d", id);
-    sprintf(mystring2, "%.3f", decimalVal);
-
-
-
-
-    contentLength = 3 + strlen(mystring) + 5 + strlen(mystring2);
-
-    sprintf(strcontentlength, "%d", contentLength);
-
-
-    strcpy(buildstr, SENDTDS);
-
-    strcat(buildstr, strcontentlength);
-    strcat(buildstr, SENDTDS2);
-
-    strcat(buildstr, mystring);
-    strcat(buildstr, SENDTDS3);
-
-    strcat(buildstr, mystring2);
-    strcat(buildstr, SENDTDS4);
-
-    return 0;
-}
-
-int buildack(int id)  {
-
-    sprintf(mystring, "%d", id);
-
-    contentLength = 3 + strlen(mystring);
-
-    sprintf(strcontentlength, "%d", contentLength);
-
-
-    strcpy(buildstr, SENDINSTACK);
-
-    strcat(buildstr, mystring);
-    strcat(buildstr, SENDINSTACK2);
-
-    return 0;
-}
 
 
 
 int32_t updateLocalTime(void){
-    uint32_t i;
 
-    char *pt = NULL;
 
   memcpy(appData.HostName,SERVER,strlen(SERVER));
   if(GetHostIP() == 0){
@@ -859,43 +750,7 @@ int32_t updateLocalTime(void){
 
    // CLI_Write((_u8 *));
 
-
-
-/* find ticker name in response*/
-    pt = strstr(appData.Recvbuff, "id");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 5; // skip over id":"
-      while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
-        Id[i] = *pt; // copy into Id string
-        pt++; i++;
-      }
-    }
-    Id[i] = 0;
-
-/* find score Value in response */
-    pt = strstr(appData.Recvbuff, "\"score\"");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 8; // skip over "score":
-      while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
-        Score[i] = *pt; // copy into Score string
-        pt++; i++;
-      }
-    }
-    Score[i] = 0;
-
-/* find edxpost in response */
-    pt = strstr(appData.Recvbuff, "edxpost");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 9; // skip over edxpost":
-      for(i=0; i<8; i++){
-        Edxpost[i] = *pt; // copy into Edxpost string
-        pt++;
-      }
-    }
-    Edxpost[i] = 0;
+    performcleanup();
 
     sl_Close(appData.SockID);
   }
@@ -932,18 +787,14 @@ int getCurrentSecond()  {
 
 
 int32_t SendTDS(int id, int val){
-    uint32_t i;
 
-    char *pt = NULL;
 
   memcpy(appData.HostName,SERVER,strlen(SERVER));
   if(GetHostIP() == 0){
     if( (appData.SockID = CreateConnection()) < 0 ) return -1;
 
-    buildTDS(id, val);
-
 /* HTTP GET string. */
-    strcpy(appData.SendBuff,buildstr);
+    strcpy(appData.SendBuff, buildTDS(id, val));
 // 1) change Austin Texas to your city
 // 2) you can change metric to imperial if you want temperature in F
     /* Send the HTTP GET string to the open TCP/IP socket. */
@@ -960,42 +811,7 @@ int32_t SendTDS(int id, int val){
 
 
     CLI_Write((_u8 *) appData.Recvbuff);
-
-/* find ticker name in response*/
-    pt = strstr(appData.Recvbuff, "id");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 5; // skip over id":"
-      while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
-        Id[i] = *pt; // copy into Id string
-        pt++; i++;
-      }
-    }
-    Id[i] = 0;
-
-/* find score Value in response */
-    pt = strstr(appData.Recvbuff, "\"score\"");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 8; // skip over "score":
-      while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
-        Score[i] = *pt; // copy into Score string
-        pt++; i++;
-      }
-    }
-    Score[i] = 0;
-
-/* find edxpost in response */
-    pt = strstr(appData.Recvbuff, "edxpost");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 9; // skip over edxpost":
-      for(i=0; i<8; i++){
-        Edxpost[i] = *pt; // copy into Edxpost string
-        pt++;
-      }
-    }
-    Edxpost[i] = 0;
+    performcleanup();
 
     sl_Close(appData.SockID);
   }
@@ -1005,19 +821,17 @@ int32_t SendTDS(int id, int val){
 
 
 
-int32_t SendDecimal(int id, double decimalVal){
-    uint32_t i;
+int32_t SendDecimal(char* id, double decimalVal){
 
-    char *pt = NULL;
 
   memcpy(appData.HostName,SERVER,strlen(SERVER));
   if(GetHostIP() == 0){
     if( (appData.SockID = CreateConnection()) < 0 ) return -1;
 
-    buildDecimal(id, decimalVal);
+
 
 /* HTTP GET string. */
-    strcpy(appData.SendBuff,buildstr);
+    strcpy(appData.SendBuff, buildDecimal(id, decimalVal));
 // 1) change Austin Texas to your city
 // 2) you can change metric to imperial if you want temperature in F
     /* Send the HTTP GET string to the open TCP/IP socket. */
@@ -1029,42 +843,7 @@ int32_t SendDecimal(int id, double decimalVal){
     sl_Recv(appData.SockID, &appData.Recvbuff[0], MAX_RECV_BUFF_SIZE, 0);
     appData.Recvbuff[strlen(appData.Recvbuff)] = '\0';
 
-
-/* find ticker name in response*/
-    pt = strstr(appData.Recvbuff, "id");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 5; // skip over id":"
-      while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
-        Id[i] = *pt; // copy into Id string
-        pt++; i++;
-      }
-    }
-    Id[i] = 0;
-
-/* find score Value in response */
-    pt = strstr(appData.Recvbuff, "\"score\"");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 8; // skip over "score":
-      while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
-        Score[i] = *pt; // copy into Score string
-        pt++; i++;
-      }
-    }
-    Score[i] = 0;
-
-/* find edxpost in response */
-    pt = strstr(appData.Recvbuff, "edxpost");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 9; // skip over edxpost":
-      for(i=0; i<8; i++){
-        Edxpost[i] = *pt; // copy into Edxpost string
-        pt++;
-      }
-    }
-    Edxpost[i] = 0;
+    performcleanup();
 
     sl_Close(appData.SockID);
   }
@@ -1079,9 +858,6 @@ int32_t SendDecimal(int id, double decimalVal){
 int32_t getNumberOfInstructions()  {
     int result = 0;
 
-    uint32_t i;
-
-    char *pt = NULL;
 
   memcpy(appData.HostName,SERVER,strlen(SERVER));
   if(GetHostIP() == 0){
@@ -1125,42 +901,7 @@ int32_t getNumberOfInstructions()  {
 
     result = atoi(strdevice);
 
-
-/* find ticker name in response*/
-    pt = strstr(appData.Recvbuff, "id");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 5; // skip over id":"
-      while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
-        Id[i] = *pt; // copy into Id string
-        pt++; i++;
-      }
-    }
-    Id[i] = 0;
-
-/* find score Value in response */
-    pt = strstr(appData.Recvbuff, "\"score\"");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 8; // skip over "score":
-      while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
-        Score[i] = *pt; // copy into Score string
-        pt++; i++;
-      }
-    }
-    Score[i] = 0;
-
-/* find edxpost in response */
-    pt = strstr(appData.Recvbuff, "edxpost");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 9; // skip over edxpost":
-      for(i=0; i<8; i++){
-        Edxpost[i] = *pt; // copy into Edxpost string
-        pt++;
-      }
-    }
-    Edxpost[i] = 0;
+    performcleanup();
 
     sl_Close(appData.SockID);
   }
@@ -1171,9 +912,7 @@ int32_t getNumberOfInstructions()  {
 
 
 int getNextInstruction()  {
-    uint32_t i;
 
-    char *pt = NULL;
 
   memcpy(appData.HostName,SERVER,strlen(SERVER));
   if(GetHostIP() == 0){
@@ -1251,42 +990,7 @@ int getNextInstruction()  {
         CLI_Write((_u8 *) "No Instructions Found");
     }
 
-
-/* find ticker name in response*/
-    pt = strstr(appData.Recvbuff, "id");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 5; // skip over id":"
-      while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
-        Id[i] = *pt; // copy into Id string
-        pt++; i++;
-      }
-    }
-    Id[i] = 0;
-
-/* find score Value in response */
-    pt = strstr(appData.Recvbuff, "\"score\"");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 8; // skip over "score":
-      while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
-        Score[i] = *pt; // copy into Score string
-        pt++; i++;
-      }
-    }
-    Score[i] = 0;
-
-/* find edxpost in response */
-    pt = strstr(appData.Recvbuff, "edxpost");
-    i = 0;
-    if( NULL != pt ){
-      pt = pt + 9; // skip over edxpost":
-      for(i=0; i<8; i++){
-        Edxpost[i] = *pt; // copy into Edxpost string
-        pt++;
-      }
-    }
-    Edxpost[i] = 0;
+    performcleanup();
 
     sl_Close(appData.SockID);
   }
@@ -1297,18 +1001,16 @@ int getNextInstruction()  {
 
 
 int32_t SendAck(int instructId)  {
-        uint32_t i;
 
-        char *pt = NULL;
 
       memcpy(appData.HostName,SERVER,strlen(SERVER));
       if(GetHostIP() == 0){
         if( (appData.SockID = CreateConnection()) < 0 ) return -1;
 
-        buildack(instructId);
+
 
     /* HTTP GET string. */
-        strcpy(appData.SendBuff,buildstr);
+        strcpy(appData.SendBuff, buildack(instructId));
     // 1) change Austin Texas to your city
     // 2) you can change metric to imperial if you want temperature in F
         /* Send the HTTP GET string to the open TCP/IP socket. */
@@ -1325,42 +1027,7 @@ int32_t SendAck(int instructId)  {
 
 
         CLI_Write((_u8 *) appData.Recvbuff);
-
-    /* find ticker name in response*/
-        pt = strstr(appData.Recvbuff, "id");
-        i = 0;
-        if( NULL != pt ){
-          pt = pt + 5; // skip over id":"
-          while((i<MAXLEN)&&(*pt)&&(*pt!='\"')){
-            Id[i] = *pt; // copy into Id string
-            pt++; i++;
-          }
-        }
-        Id[i] = 0;
-
-    /* find score Value in response */
-        pt = strstr(appData.Recvbuff, "\"score\"");
-        i = 0;
-        if( NULL != pt ){
-          pt = pt + 8; // skip over "score":
-          while((i<MAXLEN)&&(*pt)&&(*pt!=',')){
-            Score[i] = *pt; // copy into Score string
-            pt++; i++;
-          }
-        }
-        Score[i] = 0;
-
-    /* find edxpost in response */
-        pt = strstr(appData.Recvbuff, "edxpost");
-        i = 0;
-        if( NULL != pt ){
-          pt = pt + 9; // skip over edxpost":
-          for(i=0; i<8; i++){
-            Edxpost[i] = *pt; // copy into Edxpost string
-            pt++;
-          }
-        }
-        Edxpost[i] = 0;
+        performcleanup();
 
         sl_Close(appData.SockID);
       }

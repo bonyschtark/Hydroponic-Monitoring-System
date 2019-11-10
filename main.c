@@ -70,6 +70,9 @@ int currentMonth = 0;
 int currentYear = 0;
 int currentSecond = 0;
 int lastSyncMinutes = 0;
+void configureWirelessConnection();
+
+
 
 
 #define GPIO_PORTL0             (*((volatile uint32_t *)0x40062004))
@@ -120,16 +123,21 @@ void getTDS()  {
 
     float tdsValue;
     float temperature = 25;
-    float averageVoltage;
-    averageVoltage = median(buffer, SCOUNT) * (float)3.3 / 4096.0;
+    double averageVoltage;
+    averageVoltage = median(buffer, SCOUNT) * (double)3.3 / 4096.0;
 
-    float compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
-    float compensationVoltage=averageVoltage/compensationCoefficient;  //temperature compensation
+
+
+    double compensationCoefficient=1.0+0.02*(temperature-25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
+    double compensationVoltage=averageVoltage/compensationCoefficient;  //temperature compensation
     tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5; //convert voltage value to tds value
 
-    int mytds = (int) tdsValue;
+    //int mytds = (int) tdsValue;
 
-    myVal = SendTDS(1, mytds);
+    //myVal = SendTDS(1, mytds);
+
+    myVal = SendDecimal("PE3", averageVoltage);
+
 
 }
 
@@ -154,7 +162,7 @@ void getPh()  {
         phBuffer[i] = ADC0_InSeq3();
     }
 
-    float phVoltage;
+    double phVoltage;
     phVoltage = median(phBuffer, phCount)*(float) 3.3/4096;
     double newPh;
     newPh = -6.3829 * phVoltage + 16.76;
@@ -163,14 +171,10 @@ void getPh()  {
 
     int myph = (int) phVal;
 
-    result = SendDecimal(2, newPh);
+    result = SendDecimal("PE2", phVoltage);
 
 
 }
-
-
-
-
 
 
 
@@ -207,7 +211,7 @@ while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R12) == 0){};
 //  ADC0_InitSWTriggerSeq3_Ch0();    // initialize ADC0, software trigger, PE3/AIN0
 
 
-ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
+//ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
 
 // activate clock for Port J
 SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R8;
@@ -259,7 +263,7 @@ GPIO_PORTL_PCTL_R = (GPIO_PORTL_PCTL_R&0xFFFFFFF0)+0x00000000;
       //  GPIO_PORTL1 = 0;
 */
 
-
+    configureWirelessConnection();
 
     /*
      * Following function configures the device to default state by cleaning
@@ -274,25 +278,77 @@ GPIO_PORTL_PCTL_R = (GPIO_PORTL_PCTL_R&0xFFFFFFF0)+0x00000000;
      */
 
 
-     retVal = configureSimpleLinkToDefaultState();
+    retVal = updateLocalTime();
+    currentMinutes = getCurrentMinute();
+    currentHour = getCurrentHour();
+    currentDay = getCurrentDay();
+    currentMonth = getCurrentMonth();
+    currentYear = getCurrentYear();
+    currentSecond = getCurrentSecond();
+    lastSyncMinutes = currentMinutes;
+    int previousMeasureHour = currentHour - 1;
+
+
+
+    while(1)  {
+
+        if(lastSyncMinutes / 10 != currentMinutes / 10)  {
+            retVal = updateLocalTime();
+            currentMinutes = getCurrentMinute();
+            currentHour = getCurrentHour();
+            currentDay = getCurrentDay();
+            currentMonth = getCurrentMonth();
+            currentYear = getCurrentYear();
+            currentSecond = getCurrentSecond();
+
+        }
+
+    if(previousMeasureHour != currentHour)  {
+        getTDS();
+        getPh();
+        GetInstruction();
+        ExecuteInstructions();
+        previousMeasureHour = currentHour;
+    }
+
+
+
+
+          SysTick_Wait10ms(6000);
+          currentMinutes++;
+      }
+      return 0;
+}
+
+
+
+
+
+
+
+void configureWirelessConnection()  {
+
+    _i32 retVal = -1;
+
+    retVal = configureSimpleLinkToDefaultState();
     if(retVal < 0)
     {
         if (DEVICE_NOT_IN_STATION_MODE == retVal)
             CLI_Write((_u8 *)" Failed to configure the device in its default state \n\r");
 
-        LOOP_FOREVER();
+            LOOP_FOREVER();
     }
 
 
     CLI_Write((_u8 *)" Device is configured in default state \n\r");
 
-    /*
-     * Assumption is that the device is configured in station mode already
-     * and it is in its default state
-     */
+/*
+* Assumption is that the device is configured in station mode already
+* and it is in its default state
+*/
     retVal = sl_Start(0, 0, 0);
     if ((retVal < 0) ||
-        (ROLE_STA != retVal) )
+            (ROLE_STA != retVal) )
     {
         CLI_Write((_u8 *)" Failed to start the device \n\r");
         LOOP_FOREVER();
@@ -337,48 +393,17 @@ GPIO_PORTL_PCTL_R = (GPIO_PORTL_PCTL_R&0xFFFFFFF0)+0x00000000;
         CLI_Write((_u8 *)" Device successfully got the weather \n\r");
 
     }
-
-    retVal = updateLocalTime();
-    currentMinutes = getCurrentMinute();
-    currentHour = getCurrentHour();
-    currentDay = getCurrentDay();
-    currentMonth = getCurrentMonth();
-    currentYear = getCurrentYear();
-    currentSecond = getCurrentSecond();
-    lastSyncMinutes = currentMinutes;
-    int previousMeasureHour = currentHour - 1;
-
-
-
-    while(1)  {
-
-        if(lastSyncMinutes / 10 != currentMinutes / 10)  {
-            retVal = updateLocalTime();
-            currentMinutes = getCurrentMinute();
-            currentHour = getCurrentHour();
-            currentDay = getCurrentDay();
-            currentMonth = getCurrentMonth();
-            currentYear = getCurrentYear();
-            currentSecond = getCurrentSecond();
-
-        }
-
-    if(previousMeasureHour != currentHour)  {
-        getTDS();
-        getPh();
-        GetInstruction();
-        ExecuteInstructions();
-        previousMeasureHour = currentHour;
-    }
-
-
-
-
-          SysTick_Wait10ms(6000);
-          currentMinutes++;
-      }
-      return 0;
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

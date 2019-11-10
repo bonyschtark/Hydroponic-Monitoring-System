@@ -13,7 +13,9 @@ C_SRCS += \
 ../PLL.c \
 ../SysTick.c \
 ../connect.c \
+../io.c \
 ../main.c \
+../stringbuilder.c \
 ../tm4c1294ncpdt_startup_ccs.c 
 
 C_DEPS += \
@@ -21,7 +23,9 @@ C_DEPS += \
 ./PLL.d \
 ./SysTick.d \
 ./connect.d \
+./io.d \
 ./main.d \
+./stringbuilder.d \
 ./tm4c1294ncpdt_startup_ccs.d 
 
 OBJS += \
@@ -29,7 +33,9 @@ OBJS += \
 ./PLL.obj \
 ./SysTick.obj \
 ./connect.obj \
+./io.obj \
 ./main.obj \
+./stringbuilder.obj \
 ./tm4c1294ncpdt_startup_ccs.obj 
 
 OBJS__QUOTED += \
@@ -37,7 +43,9 @@ OBJS__QUOTED += \
 "PLL.obj" \
 "SysTick.obj" \
 "connect.obj" \
+"io.obj" \
 "main.obj" \
+"stringbuilder.obj" \
 "tm4c1294ncpdt_startup_ccs.obj" 
 
 C_DEPS__QUOTED += \
@@ -45,7 +53,9 @@ C_DEPS__QUOTED += \
 "PLL.d" \
 "SysTick.d" \
 "connect.d" \
+"io.d" \
 "main.d" \
+"stringbuilder.d" \
 "tm4c1294ncpdt_startup_ccs.d" 
 
 C_SRCS__QUOTED += \
@@ -53,7 +63,9 @@ C_SRCS__QUOTED += \
 "../PLL.c" \
 "../SysTick.c" \
 "../connect.c" \
+"../io.c" \
 "../main.c" \
+"../stringbuilder.c" \
 "../tm4c1294ncpdt_startup_ccs.c" 
 
 
