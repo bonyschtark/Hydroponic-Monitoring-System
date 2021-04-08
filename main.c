@@ -57,6 +57,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "SysTick.h"
+#include "PWM.h"
+
+
 
 
 /* JSON Parser include */
@@ -72,6 +75,9 @@ int currentSecond = 0;
 int lastSyncMinutes = 0;
 void configureWirelessConnection();
 
+
+
+#define GPIO_PORTL_DATA_R       (*((volatile uint32_t *)0x400623FC))
 
 
 
@@ -176,6 +182,10 @@ void getPh()  {
 
 }
 
+int myval = 0;
+void GPIOM_intHandler(void){
+  GPIO_PORTM_ICR_R = 0x10;      // acknowledge flag4
+}
 
 
 
@@ -204,11 +214,133 @@ int main(int argc, char** argv)
 
 
 
+    // activate clock for Port M
+    SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R11;
+
+    GPIO_PORTM_DIR_R &= ~0x10;       // make PL0 in (PJ0 built-in SW1)
+    GPIO_PORTM_AFSEL_R &= ~0x10;     // disable alt funct on PJ0
+    GPIO_PORTM_DEN_R |= 0x10;        // enable digital I/O on PJ0
+    GPIO_PORTM_IS_R &= ~0x10;
+    GPIO_PORTM_IBE_R &= ~0x10;
+    GPIO_PORTM_IEV_R |= 0x10;
+    GPIO_PORTM_ICR_R = 0x10;
+    GPIO_PORTM_IM_R |= 0x10;
+    NVIC_PRI18_R = (NVIC_PRI18_R&0xFFFFFF00)|0x00000040; // (g) priority 2
+      NVIC_EN1_R |= 8;              // (h) enable interrupt 2 in NVIC
+
+
+
+
+
+
+      PWM0A_Init(10, 5);        // initialize PWM0A/PF0, 1000 Hz, 75% duty
+    //  PWM0B_Init(60000, 15000);        // initialize PWM0B/PF1, 1000 Hz, 25% duty
+    //  PWM0A_Duty(6000);    // 10%
+    //  PWM0A_Duty(15000);   // 25%
+    //  PWM0A_Duty(45000);   // 75%
+
+    //  PWM0A_Init(6000, 3000);           // initialize PWM0A/PF0, 10000 Hz, 50% duty
+    //  PWM0A_Init(1500, 1350);           // initialize PWM0A/PF0, 40000 Hz, 90% duty
+    //  PWM0A_Init(1500, 225);            // initialize PWM0A/PF0, 40000 Hz, 15% duty
+    //  PWM0A_Init(60, 30);               // initialize PWM0A/PF0, 1 MHz, 50% duty
+
+      EnableInterrupts();
+      while(1){
+          WaitForInterrupt();
+      }
+
+
+
+
+      GPIO_PORTD_DIR_R &= ~0x20;     // 2) set direction register
+       GPIO_PORTD_AFSEL_R &= ~0x20;   // 3) regular port function
+       GPIO_PORTD_DEN_R |= 0x20;      // 4) enable digital port
+
+      GPIO_PORTC_DATA_R |= 0xFF;
+
+
+      GPIO_PORTC_DATA_R &= 0x00;
+
+
+      GPIO_PORTC_DATA_R |= 0xFF;
+
+
+
+
+
+/*
+      SYSCTL_RCGC2_R |= 0x00000008;  // 1) activate clock for Port D
+       delay = SYSCTL_RCGC2_R;        // allow time for clock to settle
+       GPIO_PORTD_DIR_R &= ~0x20;     // 2) set direction register
+       GPIO_PORTD_AFSEL_R &= ~0x20;   // 3) regular port function
+       GPIO_PORTD_DEN_R |= 0x20;      // 4) enable digital port
+       */
+
+
+    // activate clock for Port N
+SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R2;
+
+    GPIO_PORTC_DIR_R |= 0xFF;       // make PL0 in (PJ0 built-in SW1)
+    GPIO_PORTC_AFSEL_R &= ~0xFF;     // disable alt funct on PJ0
+    GPIO_PORTC_DEN_R |= 0xFF;        // enable digital I/O on PJ0
+
+
+    GPIO_PORTC_DATA_R |= 0xFF;
+
+
+    GPIO_PORTC_DATA_R &= 0x00;
+
+
+    GPIO_PORTC_DATA_R |= 0xFF;
+
+
+
+
+
+
+
+
+    // activate clock for Port N
+SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R5;
+
+    GPIO_PORTF_DIR_R |= 0x0F;       // make PL0 in (PJ0 built-in SW1)
+    GPIO_PORTF_AFSEL_R &= ~0x0F;     // disable alt funct on PJ0
+    GPIO_PORTF_DEN_R |= 0x0F;        // enable digital I/O on PJ0
+
+
+    GPIO_PORTF_DATA_R |= 0xFF;
+
+
+    GPIO_PORTF_DATA_R &= 0x00;
+
+
+    GPIO_PORTF_DATA_R |= 0xFF;
+
+
+
+
+
+
     // activate clock for Port N
 SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R12;
         // allow time for clock to stabilize
 while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R12) == 0){};
 //  ADC0_InitSWTriggerSeq3_Ch0();    // initialize ADC0, software trigger, PE3/AIN0
+
+
+GPIO_PORTN_DIR_R |= 0xFF;       // make PL0 in (PJ0 built-in SW1)
+GPIO_PORTN_AFSEL_R &= ~0xFF;     // disable alt funct on PJ0
+GPIO_PORTN_DEN_R |= 0xFF;        // enable digital I/O on PJ0
+
+
+GPIO_PORTN_DATA_R |= 0xFF;
+
+
+GPIO_PORTN_DATA_R &= 0x00;
+
+
+GPIO_PORTN_DATA_R |= 0xFF;
+
 
 
 //ADC0_InitSWTriggerSeq3(0);       // initialize ADC0, software trigger, PE3/AIN0
@@ -245,11 +377,27 @@ GPIO_PORTL_PCTL_R = (GPIO_PORTL_PCTL_R&0xFFFFFFF0)+0x00000000;
     GPIO_PORTL_DEN_R |= 0x0F;        // enable digital I/O on PJ0
 
 
+    GPIO_PORTL_DATA_R |= 0x0F;
+
+
+    GPIO_PORTL_DATA_R &= 0x00;
+
+
+    GPIO_PORTL_DATA_R |= 0x0F;
+
+
+    // PN3 is an output to positive logic LED3
+    // PN2 is an output to positive logic LED2
+    // PN1 is an output to positive logic LED1
+    // PN0 is an output to positive logic LED0
+
+
+
 /*
 
-    GPIO_PORTL_DATA_R |= 0x01;
+        GPIO_PORTL_DATA_R |= 0x01;
 
-    //GPIO_PORTL0 = 1;
+        //GPIO_PORTL0 = 1;
         SysTick_Wait10ms(100);
         //GPIO_PORTL0 = 0;
 

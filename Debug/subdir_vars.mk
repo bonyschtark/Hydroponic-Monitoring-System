@@ -11,6 +11,7 @@ CMD_SRCS += \
 C_SRCS += \
 ../ADCSWTrigger.c \
 ../PLL.c \
+../PWM.c \
 ../SysTick.c \
 ../connect.c \
 ../io.c \
@@ -21,6 +22,7 @@ C_SRCS += \
 C_DEPS += \
 ./ADCSWTrigger.d \
 ./PLL.d \
+./PWM.d \
 ./SysTick.d \
 ./connect.d \
 ./io.d \
@@ -31,6 +33,7 @@ C_DEPS += \
 OBJS += \
 ./ADCSWTrigger.obj \
 ./PLL.obj \
+./PWM.obj \
 ./SysTick.obj \
 ./connect.obj \
 ./io.obj \
@@ -41,6 +44,7 @@ OBJS += \
 OBJS__QUOTED += \
 "ADCSWTrigger.obj" \
 "PLL.obj" \
+"PWM.obj" \
 "SysTick.obj" \
 "connect.obj" \
 "io.obj" \
@@ -51,6 +55,7 @@ OBJS__QUOTED += \
 C_DEPS__QUOTED += \
 "ADCSWTrigger.d" \
 "PLL.d" \
+"PWM.d" \
 "SysTick.d" \
 "connect.d" \
 "io.d" \
@@ -61,6 +66,7 @@ C_DEPS__QUOTED += \
 C_SRCS__QUOTED += \
 "../ADCSWTrigger.c" \
 "../PLL.c" \
+"../PWM.c" \
 "../SysTick.c" \
 "../connect.c" \
 "../io.c" \

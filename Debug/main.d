@@ -33,6 +33,7 @@ main.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_ty
 main.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_types.h
 main.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdlib.h
 main.obj: ../SysTick.h
+main.obj: ../PWM.h
 main.obj: C:/ti/CC3100SDK_1.3.0/cc3100-sdk/examples/common/jsmn.h
 main.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stddef.h
 main.obj: ../connect.h
@@ -70,6 +71,7 @@ C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_types.h:
 C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_types.h: 
 C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdlib.h: 
 ../SysTick.h: 
+../PWM.h: 
 C:/ti/CC3100SDK_1.3.0/cc3100-sdk/examples/common/jsmn.h: 
 C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stddef.h: 
 ../connect.h: 
