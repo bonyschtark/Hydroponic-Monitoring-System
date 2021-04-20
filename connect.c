@@ -758,31 +758,6 @@ int32_t updateLocalTime(void){
   return 0;
 }
 
-int getCurrentDay()  {
-    return theTime.currDay;
-}
-
-int getCurrentMonth()  {
-    return theTime.currMonth;
-}
-
-int getCurrentYear()  {
-    return theTime.currYear;
-}
-
-int getCurrentHour()  {
-    return theTime.currHour;
-}
-
-int getCurrentMinute()  {
-
-    return theTime.currMinute;
-}
-
-int getCurrentSecond()  {
-    return theTime.currSecond;
-}
-
 
 
 

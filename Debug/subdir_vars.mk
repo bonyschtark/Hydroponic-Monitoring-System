@@ -10,6 +10,7 @@ CMD_SRCS += \
 
 C_SRCS += \
 ../ADCSWTrigger.c \
+../I2C0.c \
 ../PLL.c \
 ../PWM.c \
 ../SysTick.c \
@@ -21,6 +22,7 @@ C_SRCS += \
 
 C_DEPS += \
 ./ADCSWTrigger.d \
+./I2C0.d \
 ./PLL.d \
 ./PWM.d \
 ./SysTick.d \
@@ -32,6 +34,7 @@ C_DEPS += \
 
 OBJS += \
 ./ADCSWTrigger.obj \
+./I2C0.obj \
 ./PLL.obj \
 ./PWM.obj \
 ./SysTick.obj \
@@ -43,6 +46,7 @@ OBJS += \
 
 OBJS__QUOTED += \
 "ADCSWTrigger.obj" \
+"I2C0.obj" \
 "PLL.obj" \
 "PWM.obj" \
 "SysTick.obj" \
@@ -54,6 +58,7 @@ OBJS__QUOTED += \
 
 C_DEPS__QUOTED += \
 "ADCSWTrigger.d" \
+"I2C0.d" \
 "PLL.d" \
 "PWM.d" \
 "SysTick.d" \
@@ -65,6 +70,7 @@ C_DEPS__QUOTED += \
 
 C_SRCS__QUOTED += \
 "../ADCSWTrigger.c" \
+"../I2C0.c" \
 "../PLL.c" \
 "../PWM.c" \
 "../SysTick.c" \

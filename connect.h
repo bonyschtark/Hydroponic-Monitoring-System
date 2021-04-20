@@ -15,12 +15,7 @@ _i32 checkLanConnection();
 _i32 checkInternetConnection();
 _i32 initializeAppVariables();
 void displayBanner();
-int getCurrentDay();
-int getCurrentMonth();
-int getCurrentYear();
-int getCurrentHour();
-int getCurrentMinute();
-int getCurrentSecond();
+
 int32_t SendTDS(int id, int val);
 int32_t SendDecimal(char* id, double decimalVal);
 int32_t GetInstruction();
