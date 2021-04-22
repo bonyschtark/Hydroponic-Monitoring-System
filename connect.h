@@ -21,6 +21,13 @@ int32_t SendDecimal(char* id, double decimalVal);
 int32_t GetInstruction();
 int32_t SendAcknowledgment(int instructId);
 
+int getCurrentDay();
+int getCurrentMonth();
+int getCurrentYear();
+int getCurrentHour();
+int getCurrentMinute();
+int getCurrentSecond();
+
 
 
 

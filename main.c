@@ -46,6 +46,7 @@
  */
 
 /**/
+#include <stdint.h>
 #include "simplelink.h"
 #include "sl_common.h"
 #include "ADCSWTrigger.h"
@@ -53,6 +54,7 @@
 #include "tm4c1294ncpdt.h"
 #include "driverlib/sysctl.h"
 #include <stdbool.h>
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,410 +68,7 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/pin_map.h"
 #include "inc/hw_memmap.h"
-
-
-
-
-/*
-#include "ds18b20.h"
-#include "types.h"
-
-#define UART_TXD   0x02             // TXD on P1.1 (Timer0_A.OUT0)
-#define UART_RXD   0x04             // RXD on P1.2 (Timer0_A.CCI1A)
-#define UART_TBIT_DIV_2 (16000000 / (9600 * 2))
-#define UART_TBIT (16000000 / 9600)
-
-#define delayMicroseconds(n) __delay_cycles(n<<4)
-
-// The One Wire bus is connected to this pin
-#define WIRE_PORT 7 //Remember you need a 4.7k pullup resistor here.
-
-#define LOW 0
-#define HIGH 1
-#define INPUT 0
-#define OUTPUT 1
-#define FALSE 0
-#define TRUE 1
-
-
-//Zeke's mod's
-int  OW_Reset( int Pin );
-void OW_WriteByte(int Pin, char d);
-char OW_ReadByte(int Pin);
-
-// Routines written by Peter H Anderson
-// http://www.phanderson.com/arduino/ds18b20_1.html
-char digitalRead( char Pin );
-void pinMode( int Pin, int Out );
-void digitalWrite( int Pin, int Bit );
-
-// Software UART routines
-void TimerA_UART_init( void );
-UINT8 UART_putHexByte( UINT8 data);
-UINT8 UART_PutDec32( UINT32 data);
-void TimerA_UART_tx( UINT8 byte );
-
-unsigned int  txData;    // UART internal variable for TX
-unsigned char rxBuffer;  // Received UART character
-
-*/
-
-/*
-void main(void)
-{
-
-
-
-
-
-
-
-
-
-//  int temp = 0;
- int i;
- int ROMCode[8];
- int ScratchPad[9];
- int HighByte, LowByte, TReading, SignBit, Tc_100, Whole, Fract;
-
-  WDTCTL = WDTPW + WDTHOLD;               // Stop watchdog timer
-  BCSCTL1 = CALBC1_16MHZ;
-  DCOCTL  = CALDCO_16MHZ;
-
-  P1OUT = UART_RXD;                       // RXD as IN
-  P1SEL = UART_TXD + UART_RXD;            // Timer function for TXD/RXD pins
-  P1DIR = UART_TXD;
-
-  TimerA_UART_init();
-  __enable_interrupt();
-
-
-  while ( 1 )
-  {
-     if ( 1 == OW_Reset( WIRE_PORT ) )
-     {
-       OW_WriteByte( WIRE_PORT, 0x33 );  // Read ROM Code from DS18B20
-
-       for( i=0; i<8; i++ )
-       {
-         // Read the values inside of the ROMCode array in the debugger window
-         ROMCode[i] = OW_ReadByte( WIRE_PORT );
-       }
-     }
-
-     if ( 1 == OW_Reset( WIRE_PORT ) )
-     {
-       OW_WriteByte( WIRE_PORT, SKIPROM );  // Skip ROM Code matching
-       OW_WriteByte( WIRE_PORT, CONVERTTEMP );  // Read ROM Code from DS18B20
-       OW_Reset( WIRE_PORT );
-       OW_WriteByte( WIRE_PORT, SKIPROM );  // Skip ROM Code matching
-       OW_WriteByte( WIRE_PORT, READSCRATCHPAD );  // Read ScratchPad from DS18B20
-
-       for( i=0; i<9; i++ )
-       {
-         // Read the values inside of the ScratchPad array in the debugger window
-         ScratchPad[i] = OW_ReadByte( WIRE_PORT );
-       }
-     }
-
-
-     OW_Reset( WIRE_PORT );
-     OW_WriteByte( WIRE_PORT, SKIPROM );         // Skip ROM Code matching
-     OW_WriteByte( WIRE_PORT, CONVERTTEMP );     // Read ROM Code from DS18B20
-     OW_Reset( WIRE_PORT );
-     OW_WriteByte( WIRE_PORT, SKIPROM );         // Skip ROM Code matching
-     OW_WriteByte( WIRE_PORT, READSCRATCHPAD );  // Read ScratchPad from DS18B20
-
-     LowByte  = OW_ReadByte( WIRE_PORT );
-     HighByte = OW_ReadByte( WIRE_PORT );
-
-     // Thanks again "Mr. Anderson" for this code
-     TReading = ( HighByte << 8 ) + LowByte;
-     SignBit = TReading & 0x8000;  // test most sig bit
-     if ( 1 == SignBit ) // negative
-     {
-       TReading = (TReading ^ 0xffff) + 1; // 2's comp
-     }
-     Tc_100 = ( 6 * TReading ) + TReading / 4;    // multiply by (100 * 0.0625) or 6.25
-
-     Whole = Tc_100 / 100;  // separate off the whole and fractional portions
-     Fract = Tc_100 % 100;
-
-     //this will print the tempature in an int8 over serial every 1 second.
-     UART_putHexByte( Whole );   // Transmit the hex value
-     UART_putHexByte( Fract );
-     UART_PutDec32( Tc_100 );    // Transmit the decimal value
-     TimerA_UART_tx( ' ' );   // Transmit a space character
-
-     // insert a breakpoint here and observe the variables in the watch window
-     delayMicroseconds( 1000000 );
-   }
-}
-
-int OW_Reset( int Pin )
-{
- int presence;
-
- delayMicroseconds( 0 );  // delay for 0us
- digitalWrite( Pin, LOW );
- pinMode( Pin, OUTPUT );
- delayMicroseconds( 480 );  // delay for 480us
- pinMode( Pin, INPUT );
- delayMicroseconds( 70 );  // delay for 70us
-
- if( 0 == digitalRead( WIRE_PORT ) )
- {
-   presence = TRUE;      // Presense pulse detected
- }
- else
- {
-   presence = FALSE;     // ds18b20 is not there
- }
-
- delayMicroseconds( 410 );  // delay for 410us
-
- return ( presence );        // return the sampled presence pulse result
-}
-
-// Peter Anderson wrote this
-void OW_WriteByte( int Pin, char d )
-{
- char n;
- for(n=8; n!=0; n--)
- {
-   if ( (d & 0x01) == 1 )
-   {
-     digitalWrite( Pin, LOW );
-     pinMode( Pin, OUTPUT );
-     delayMicroseconds( 5 );
-     pinMode( Pin, INPUT );
-     delayMicroseconds( 60 );
-   }
-   else
-   {
-     digitalWrite( Pin, LOW );
-     pinMode( Pin, OUTPUT );
-     delayMicroseconds( 60 );
-     pinMode( Pin, INPUT );
-   }
-   d = d >> 1;
- }
-}
-
-// Peter Anderson wrote this
-char OW_ReadByte( int pin )
-{
- char d, n, b;
-
- for ( n=0; n<8; n++ )
- {
-   digitalWrite( pin, LOW );
-   pinMode( pin, OUTPUT);
-   delayMicroseconds( 5 );
-   pinMode( pin, INPUT );
-   delayMicroseconds( 5 );
-   b = digitalRead( pin );
-   delayMicroseconds( 50 );
-   d = (d >> 1) | (b << 7); // shift d to right and insert b in most sig bit position
- }
- return(d);
-}
-
-//------------------------------------------------------------------------------
-// Arduino like digitalRead, pinMode, and digitalWrite helper functions.
-//------------------------------------------------------------------------------
-char digitalRead( char Pin )
-{
- // Read P1IN and mask it with the 1wPin then shift it to the LSB position
- return ( (P1IN &  (1 << Pin) ) >> Pin );
-}
-
-void pinMode( int pin, int out )
-{
- if( 1 == out )
- {
-   P1DIR |= (1 << pin);
- }
- else
- {
-   P1DIR &= (~(1 << pin));
- }
-}
-
-void digitalWrite(int Pin, int Bit)
-{
- if ( 1 == ( Bit ) )
- {
-   P1OUT |= ( 1 << Pin );      // if the Bit is HIGH then drive the 1wBus HIGH
- }
- else
- {
-   P1OUT &= ( ~(1 << Pin) );   // if the Bit is LOW then drive the 1wBus LOW
- }
-}
-
-UINT8 UART_putHexByte(UINT8 data)
-{
- unsigned char nibble;
-
- nibble = (data>>4) & 0x0F;
-
- if (nibble<10)
- {
-   nibble=nibble+'0';
- }
- else
- {
-   nibble = nibble-10+'a';
- }
-
- TimerA_UART_tx( nibble );
-
- nibble = data & 0x0F;
-
- if (nibble<10)
- {
-   nibble = nibble+'0';
- }
- else
- {
-   nibble = nibble-10+'a';
- }
-
- TimerA_UART_tx( nibble );
-
- return 1;
-}
-
-UINT8 UART_PutDec32(UINT32 data)
-{
- UINT32 divisor, result, remainder;
- UINT8 leading;
-
- leading=1;
-
- remainder = data;
-
- for(divisor = 1000000000; divisor > 0; divisor /= 10)
- {
-   result = remainder / divisor;
-   remainder %= divisor;
-
-   if (result)
-     leading=0;
-
-   if (!leading||(divisor==1))
-     TimerA_UART_tx((UINT8)(result) + '0');
- }
-
- return 1;
-}
-
-//------------------------------------------------------------------------------
-// Function configures Timer_A for full-duplex UART operation
-//------------------------------------------------------------------------------
-void TimerA_UART_init(void)
-{
- TACCTL0 = OUT;                          // Set TXD Idle as Mark = '1'
- TACCTL1 = SCS + CM1 + CAP + CCIE;       // Sync, Neg Edge, Capture, Int
- TACTL = TASSEL_2 + MC_2;                // SMCLK, start in continuous mode
-}
-
-//------------------------------------------------------------------------------
-// Outputs one byte using the Timer_A UART
-//------------------------------------------------------------------------------
-void TimerA_UART_tx(unsigned char byte)
-{
- while (TACCTL0 & CCIE);                 // Ensure last char got TX'd
- TACCR0 = TAR;                           // Current state of TA counter
- TACCR0 += UART_TBIT;                    // One bit time till first bit
- TACCTL0 = OUTMOD0 + CCIE;               // Set TXD on EQU0, Int
- txData = byte;                          // Load global variable
- txData |= 0x100;                        // Add mark stop bit to TXData
- txData <<= 1;                           // Add space start bit
-}
-
-//------------------------------------------------------------------------------
-// Timer_A UART - Transmit Interrupt Handler
-//------------------------------------------------------------------------------
-#pragma vector = TIMERA0_VECTOR
-__interrupt void Timer_A0_ISR(void)
-{
- static unsigned char txBitCnt = 10;
-
- TACCR0 += UART_TBIT;                    // Add Offset to CCRx
- if (txBitCnt == 0)                      // All bits TXed?
- {
-   TACCTL0 &= ~CCIE;                   // All bits TXed, disable interrupt
-   txBitCnt = 10;                      // Re-load bit counter
- }
- else
- {
-   if (txData & 0x01)
-   {
-     TACCTL0 &= ~OUTMOD2;              // TX Mark '1'
-   }
-   else
-   {
-     TACCTL0 |= OUTMOD2;               // TX Space '0'
-   }
-   txData >>= 1;
-   txBitCnt--;
- }
-}
-
-//------------------------------------------------------------------------------
-// Timer_A UART - Receive Interrupt Handler
-//------------------------------------------------------------------------------
-#pragma vector = TIMERA1_VECTOR
-__interrupt void Timer_A1_ISR(void)
-{
- static unsigned char rxBitCnt = 8;
- static unsigned char rxData = 0;
-
- switch ( __even_in_range(TAIV, TAIV_TAIFG) )  // Use calculated branching
- {
-   case TAIV_TACCR1:                           // TACCR1 CCIFG - UART RX
-     TACCR1 += UART_TBIT;                 // Add Offset to CCRx
-     if (TACCTL1 & CAP)                    // Capture mode = start bit edge
-     {
-       TACCTL1 &= ~CAP;                 // Switch capture to compare mode
-       TACCR1 += UART_TBIT_DIV_2;       // Point CCRx to middle of D0
-     }
-     else
-     {
-       rxData >>= 1;
-       if (TACCTL1 & SCCI)             // Get bit waiting in receive latch
-       {
-         rxData |= 0x80;
-       }
-       rxBitCnt--;
-       if (rxBitCnt == 0)              // All bits RXed?
-       {
-         rxBuffer = rxData;           // Store in global variable
-         rxBitCnt = 8;                // Re-load bit counter
-         TACCTL1 |= CAP;              // Switch compare to capture mode
-         __bic_SR_register_on_exit(LPM0_bits);  // Clear LPM0 bits from 0(SR)
-       }
-     }
-   break;
- }
-}
-
-
-
-
-
-
-
-*/
-
-
-
-
-
-
-
+#include "connect.h"
 
 
 
@@ -495,13 +94,6 @@ __interrupt void Timer_A1_ISR(void)
 #include "jsmn.h"
 #include "connect.h"
 
-int currentMinutes = 0;
-int currentHour = 0;
-int currentDay = 0;
-int currentMonth = 0;
-int currentYear = 0;
-int currentSecond = 0;
-int lastSyncMinutes = 0;
 void configureWirelessConnection();
 
 
@@ -612,32 +204,8 @@ void getPh()  {
 }
 
 
-/*
- * Application's entry point
- */
-int main(int argc, char** argv)
-{
 
-    PLL_Init();                      // 120 MHz
-    SysTick_Init();
-
-    _i32 retVal = -1;
-
-    retVal = initializeAppVariables();
-    ASSERT_ON_ERROR(retVal);
-
-    /* Stop WDT and initialize the system-clock of the MCU */
-    stopWDT();
-    initClk();
-
-    /* Configure command line interface */
-    CLI_Configure();
-
-    displayBanner();
-
-
-
-
+int getInternalTemp()  {
 
     // must be as large as the FIFO for the sequencer in use.  This example
                  // uses sequence 3 which has a FIFO depth of 1.  If another sequence
@@ -730,21 +298,56 @@ int main(int argc, char** argv)
                      //
                      TempValueF = ((TempValueC * 9) + 160) / 5;
 
-                     //
-                     // Display the temperature value on the console.
-
-                     //
-                     // This function provides a means of generating a constant length
-                     // delay.  The function delay (in cycles) = 3 * parameter.  Delay
-                     // 250ms arbitrarily.
-                     //
-                     SysCtlDelay(80000000 / 12);
+                     return TempValueC;
                  }
 
 
+}
+
+
+int currentMinutes = 0;
+int currentHour = 0;
+int currentDay = 0;
+int currentMonth = 0;
+int currentYear = 0;
+int currentSecond = 0;
+int lastSyncMinutes = 0;
 
 
 
+void init()  {
+
+}
+
+
+/*
+ * Application's entry point
+ */
+int main(int argc, char** argv)
+{
+
+    PLL_Init();                      // 120 MHz
+    SysTick_Init();
+
+    _i32 retVal = -1;
+
+    retVal = initializeAppVariables();
+    ASSERT_ON_ERROR(retVal);
+
+    /* Stop WDT and initialize the system-clock of the MCU */
+    stopWDT();
+    initClk();
+
+    /* Configure command line interface */
+    CLI_Configure();
+
+    displayBanner();
+
+
+
+
+
+    getPh();
 
 
 
@@ -786,17 +389,7 @@ int main(int argc, char** argv)
 
     configureWirelessConnection();
 
-    /*
-     * Following function configures the device to default state by cleaning
-     * the persistent settings stored in NVMEM (viz. connection profiles &
-     * policies, power policy etc)
-     *
-     * Applications may choose to skip this step if the developer is sure
-     * that the device is in its default state at start of application
-     *
-     * Note that all profiles and persistent settings that were done on the
-     * device will be lost
-     */
+
 
 
     retVal = updateLocalTime();
@@ -809,11 +402,11 @@ int main(int argc, char** argv)
     lastSyncMinutes = currentMinutes;
     int previousMeasureHour = currentHour - 1;
 
+    while (1)
+    {
 
-
-    while(1)  {
-
-        if(lastSyncMinutes / 10 != currentMinutes / 10)  {
+        if (lastSyncMinutes / 10 != currentMinutes / 10)
+        {
             retVal = updateLocalTime();
             currentMinutes = getCurrentMinute();
             currentHour = getCurrentHour();
@@ -824,20 +417,23 @@ int main(int argc, char** argv)
 
         }
 
-    if(previousMeasureHour != currentHour)  {
-        getTDS();
-        getPh();
-        GetInstruction();
-        ExecuteInstructions();
-        previousMeasureHour = currentHour;
+        if (previousMeasureHour != currentHour)
+        {
+            getTDS();
+            getPh();
+            GetInstruction();
+            ExecuteInstructions();
+            previousMeasureHour = currentHour;
+        }
+
+        SysTick_Wait10ms(6000);
+        currentMinutes++;
     }
 
 
 
 
-          SysTick_Wait10ms(6000);
-          currentMinutes++;
-      }
+
       return 0;
 }
 

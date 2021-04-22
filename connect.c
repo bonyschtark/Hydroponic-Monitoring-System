@@ -21,8 +21,18 @@
 #define GETINSTRUCTIONCOUNT "GET /greengarden/getinstructioncount.php HTTP/1.0\r\n\r\n"
 
 
-#define GETTIME "GET /greengarden/gettime.php HTTP/1.0\r\n\r\n"
+//http://192.168.1.22:8000/dashboard/data
+
+
+//#define GETTIME "GET /greengarden/gettime.php HTTP/1.0\r\n\r\n"
+
+#define GETTIME "GET /dashboard/time HTTP/1.0\r\n\r\n"
 #define REQUEST "POST /greengarden/garden.php HTTP/1.1\r\nHost: 192.168.1.8\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 14\r\n\r\nid=107&val=jul\r\n\r\n"
+
+#define SENDSTATE "POST /dashboard/data HTTP/1.1\r\nHost: 192.168.1.22\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 14\r\n\r\nid=107&val=jul\r\n\r\n"
+
+
+
 
 
 #define SERVER  "SERVER"
@@ -84,6 +94,28 @@ struct{
   int currSecond;
 }theTime;
 
+
+
+int getCurrentSecond()  {
+    return theTime.currSecond;
+}
+
+
+int getCurrentDay() {
+    return theTime.currDay;
+}
+int getCurrentMonth() {
+    return theTime.currMonth;
+}
+int getCurrentYear()  {
+    return theTime.currYear;
+}
+int getCurrentHour() {
+    return theTime.currHour;
+}
+int getCurrentMinute()  {
+    return theTime.currMinute;
+}
 
 
 
@@ -796,6 +828,7 @@ int32_t SendTDS(int id, int val){
 
 
 
+
 int32_t SendDecimal(char* id, double decimalVal){
 
 
@@ -825,6 +858,8 @@ int32_t SendDecimal(char* id, double decimalVal){
 
   return 0;
 }
+
+
 
 
 
@@ -1012,6 +1047,98 @@ int32_t SendAck(int instructId)  {
 
 
 
+int32_t SendState(float tds, float ph, float waterheight, float measuredtemp, float watertemp)  {
+
+
+
+
+    memcpy(appData.HostName,SERVER,strlen(SERVER));
+    if(GetHostIP() == 0){
+      if( (appData.SockID = CreateConnection()) < 0 ) return -1;
+
+  /* HTTP GET string. */
+  //    strcpy(appData.SendBuff, "test");
+  // 1) change Austin Texas to your city
+  // 2) you can change metric to imperial if you want temperature in F
+      /* Send the HTTP GET string to the open TCP/IP socket. */
+      sl_Send(appData.SockID, appData.SendBuff, strlen(appData.SendBuff), 0);
+
+      CLI_Write((_u8 *) appData.SendBuff);
+
+
+  /* Receive response */
+      sl_Recv(appData.SockID, &appData.Recvbuff[0], MAX_RECV_BUFF_SIZE, 0);
+      appData.Recvbuff[strlen(appData.Recvbuff)] = '\0';
+
+
+
+
+      CLI_Write((_u8 *) appData.Recvbuff);
+      performcleanup();
+
+      sl_Close(appData.SockID);
+    }
+
+    return 0;
+
+
+
+
+/*
+HTTPClient http;
+
+http.begin("http://192.168.1.22:8000/dashboard/data");                        //Specify destination for HTTP request
+http.addHeader("Content-Type", "application/x-www-form-urlencoded"); //Specify content-type header
+
+
+String httpPost = "tds=";
+httpPost.concat(tds);
+httpPost.concat("&ph=");
+httpPost.concat(ph);
+httpPost.concat("&waterheight=");
+httpPost.concat(waterheight);
+httpPost.concat("&measuredtemp=");
+httpPost.concat(measuredtemp);
+httpPost.concat("&watertemp=");
+httpPost.concat(watertemp);
+
+Serial.println(httpPost);
+
+
+int httpResponseCode = http.POST(httpPost); //Send the actual POST request
+
+if (httpResponseCode > 0)
+{
+
+  String response = http.getString(); //Get the response to the request
+
+  Serial.println(httpResponseCode); //Print return code
+  Serial.println(response);         //Print request answer
+
+}
+else
+{
+  Serial.print("Error on sending POST: ");
+
+  Serial.println(httpResponseCode);
+}
+
+http.end(); //Free resources
+
+*/
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1107,7 +1234,7 @@ int CreateConnection(void){
     /* Change the DestinationIP endianity, to big endian */
   //Addr.sin_addr.s_addr = sl_Htonl(appData.DestinationIP);
 
-    unsigned long mydestination = 0xc0a80105;
+    unsigned long mydestination = 0xc0a80116;
 
   Addr.sin_addr.s_addr = sl_Htonl(mydestination);
 
